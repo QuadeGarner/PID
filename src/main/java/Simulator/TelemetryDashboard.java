@@ -86,7 +86,7 @@ public class TelemetryDashboard extends Application {
         iLabel = new Label();
         iLabel.setLayoutX(900); iLabel.setLayoutY(100);
         iLabel.setTextFill(Color.BLACK);
-        dSlider = new Slider(0, 1, kD);
+        dSlider = new Slider(0, 4.0, kD);
         dSlider.setLayoutX(900); dSlider.setLayoutY(190);
         dSlider.setPrefWidth(200);
         dLabel = new Label();
@@ -226,9 +226,9 @@ public class TelemetryDashboard extends Application {
     }
     private void setTrigger(){
         slider.setValue(500);
-        pSlider.setValue(0.001);
-        dSlider.setValue(0.0);
-        iSlider.setValue(0.0);
+        pSlider.setValue(0.0450);
+        dSlider.setValue(3.5);
+        iSlider.setValue(0.0001);
         targetLine.getPoints().clear();
         powerLine.getPoints().clear();
         motorLine.getPoints().clear();
