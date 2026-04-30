@@ -1,15 +1,15 @@
 # PID Motor Simulator & Telemetry Dashboard
 
-A high-fidelity **control system workbench** developed in JavaFX to simulate, visualize, and profile a discrete PID controller. This tool provides a real-time graphical interface for tuning control gains and analyzing system stability under various load conditions.
+A high-fidelity control system workbench developed in JavaFX to simulate, visualize, and profile a discrete PID controller. This tool provides a real-time graphical interface for tuning control gains and analyzing system stability under various load conditions.
 
 ## Key Features
-*   **Second-Order Plant Simulation:** Accurately models physical hardware by simulating **Mass**, **Inertia**, and **Damping** through numerical integration ($F=ma$).
-*   **Dynamic Load Scaling:** Includes a real-time "Mass" slider and label to adjust motor inertia on the fly, allowing for robustness testing against variable physical loads.
-*   **Discrete PID Controller:** Implements a full Proportional-Integral-Derivative (PID) loop with **Integral Anti-Windup** to prevent actuator saturation issues.
-*   **Signal Processing:** Utilizes an **Exponential Moving Average (EMA) filter** on the derivative term to suppress high-frequency noise and jitter.
-*   **Performance Profiling:** Automated calculation of **Rise Time (10-90%)**, **Settling Time (2% criterion)**, and **Overshoot percentage**.
-*   **Interactive Telemetry:** Real-time multi-lane graphing of **Process Variable (PV)**, **Setpoint (SP)**, and **Control Effort (Output)**.
-*   **Static Friction (Stiction) Simulation:** Logic handles minimum power thresholds to simulate real-world motor breakaway torque.
+*   **Second-Order Plant Simulation**: Accurately models physical hardware by simulating Mass, Inertia, and Damping through numerical integration ($F=ma$).
+*   **Dynamic Load Scaling**: Includes a real-time Mass slider and label to adjust motor inertia on the fly, allowing for robustness testing against variable physical loads.
+*   **Discrete PID Controller**: Implements a full Proportional-Integral-Derivative (PID) loop with Integral Anti-Windup to prevent actuator saturation issues.
+*   **Signal Processing**: Utilizes an Exponential Moving Average (EMA) filter on the derivative term to suppress high-frequency noise and jitter.
+*   **Performance Profiling**: Automated calculation of Rise Time (10-90%), Settling Time (2% criterion), and Overshoot percentage.
+*   **Interactive Telemetry**: Real-time multi-lane graphing of Process Variable (PV), Setpoint (SP), and Control Effort (Output).
+*   **Static Friction (Stiction) Simulation**: Logic handles minimum power thresholds to simulate real-world motor breakaway torque.
 
 ## Technical Implementation
 
@@ -25,30 +25,36 @@ The firmware logic calculates motor effort using discrete-time integration and d
 2.  **Integral ($k_I$):** Eliminates steady-state error with a software-capped summation to prevent windup.
 3.  **Derivative ($k_D$):** Predicts future error to dampen oscillations, smoothed via a low-pass filter. In second-order mode, this acts as the primary braking force against simulated inertia.
 
-### Transient Response Diagnostics
-The dashboard includes a **Step Response Trigger**. By injecting a sudden step input into the system, the tool benchmarks:
-*   **Rise Time:** Speed of the system response from 10% to 90% of the target.
-*   **Settling Time:** Time required for the system to reach a steady state within a 2% tolerance band.
-*   **Stability:** Visualization of the damping ratio and oscillation frequency.
+## System Characterization (Fixed Hardware)
+Testing was conducted using a fixed motor constant and a `Mass = 1.00` load to simulate real-world hardware constraints.
+
+### Observed Performance Envelope
+Through iterative tuning, it was determined that the physical constraints of the 1kg mass create a performance ceiling for the current motor constant:
+*   **Maximum Stable Aggression**: $k_P = 0.0450$. 
+*   **Rise Time Floor**: 2.93s. Attempts to force the rise time lower result in momentum that exceeds the damping capabilities of the software controller.
+*   **Settling Time Limit**: 7.20s. Increasing $k_D$ beyond 3.50 results in discrete-time noise amplification without improving stability.
+
+### Engineering Conclusion
+With the current second-order plant physics, a 2s Rise Time is physically unattainable without hardware-level modifications (e.g., increasing motor torque). The "Golden Tune" for this specific configuration is identified as $k_P = 0.0350$ and $k_D = 1.92$, yielding a balanced 2.9s Rise and 7.2s Settling time.
 
 ## Project Structure
 *   **`Simulator.TelemetryDashboard`**: The central controller managing the high-frequency loop and UI events.
 *   **`Simulator.VirtualMotor`**: A physics-based model of a DC motor's position and velocity, including mutable mass and damping variables.
-*   **Hardware-Agnostic Design:** The PID logic is written to be easily portable to embedded C for microcontrollers (e.g., STM32, Arduino).
+*   **Hardware-Agnostic Design**: The PID logic is written to be easily portable to embedded C for microcontrollers.
 
 ## Controls & Tuning Ranges
 | Parameter | Range | Description |
 | :--- | :--- | :--- |
-| **$k_P$** | 0.0 - 0.05 | Primary gain for error correction. |
+| **$k_P$** | 0.0 - 0.10 | Primary gain for error correction. |
 | **$k_I$** | 0.0 - 0.001 | Accumulates error to reach the exact setpoint. |
-| **$k_D$** | 0.0 - 0.5 | Dampens movement to prevent overshoot. |
-| **Mass** | Variable | Adjusts system inertia; higher values require higher $k_D$ for stability. |
+| **$k_D$** | 0.0 - 4.0 | Dampens movement; high values required for high-mass stability. |
+| **Mass** | 0.1 - 5.0 | Adjusts system inertia; defines the physical limits of the simulation. |
 
 ---
 
-**Current Status:** Fully functional tuning workbench with second-order physics support.
+**Current Status**: Fully functional tuning workbench with second-order physics support.
 
-**Future Development:**
+**Future Development**:
 - [ ] Port the core control logic to C for hardware integration.
 - [ ] Add CSV export functionality for post-test data analysis.
 - [ ] Implement Frequency Response (Bode Plot) generation.
