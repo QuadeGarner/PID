@@ -26,8 +26,8 @@ public class TelemetryDashboard extends Application {
     double power;
     double intergalSum = 0;
     double timeX = 0;
-    private Slider slider, pSlider, iSlider, dSlider;
-    private Label pLabel, iLabel, dLabel, statsLabel;
+    private Slider slider, pSlider, iSlider, dSlider, massSlider;
+    private Label pLabel, iLabel, dLabel, statsLabel, massLabel;
     private double maxPosDuringStep =0;
     private Polyline targetLine, motorLine, powerLine;
     private int settleFrames = 0;
@@ -86,22 +86,28 @@ public class TelemetryDashboard extends Application {
         iLabel = new Label();
         iLabel.setLayoutX(900); iLabel.setLayoutY(100);
         iLabel.setTextFill(Color.BLACK);
-        dSlider = new Slider(0, 0.5, kD);
+        dSlider = new Slider(0, 1, kD);
         dSlider.setLayoutX(900); dSlider.setLayoutY(190);
         dSlider.setPrefWidth(200);
         dLabel = new Label();
         dLabel.setLayoutX(900); dLabel.setLayoutY(170);
         dLabel.setTextFill(Color.BLACK);
         statsLabel = new Label();
-        statsLabel.setLayoutX(900); statsLabel.setLayoutY(210);
+        statsLabel.setLayoutX(900); statsLabel.setLayoutY(230);
         statsLabel.setTextFill(Color.BLACK);
+        massSlider = new Slider();
+        massSlider.setMin(1.0);
+        massSlider.setMax(5.0);
+        massSlider.setLayoutX(900); massSlider.setLayoutY(210);
+        massLabel = new Label("Mass");
+        massLabel.setLayoutX(900);massLabel.setLayoutY(200);
         Rectangle controlBg = new Rectangle(250, 250, Color.DARKGRAY);
         controlBg.setLayoutX(880);
         controlBg.setLayoutY(20);
         controlBg.setArcWidth(10); // Rounded corners look professional
         controlBg.setArcHeight(10);
         root.getChildren().add(controlBg);
-        root.getChildren().addAll(pSlider, iSlider, dSlider, pLabel, iLabel, dLabel, statsLabel);
+        root.getChildren().addAll(pSlider, iSlider, dSlider, pLabel, iLabel, dLabel, statsLabel, massLabel, massSlider);
         root.getChildren().add(slider);
         root.getChildren().add(graph);
         root.getChildren().add(rect);
@@ -114,9 +120,11 @@ public class TelemetryDashboard extends Application {
                 kP = pSlider.getValue();
                 kI = iSlider.getValue();
                 kD = dSlider.getValue();
+                vm.setMASS(massSlider.getValue());
                 pLabel.setText(String.format("kP (Proportional): %.4f", kP));
                 iLabel.setText(String.format("kI (Integral): %.6f", kI));
                 dLabel.setText(String.format("kD (Derivative): %.4f", kD));
+                massLabel.setText(String.format("Mass : %.2f", massSlider.getValue()));
                 timeX += 0.5;
                 if(target != slider.getValue()){
                     intergalSum = 0;
