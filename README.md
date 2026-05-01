@@ -1,60 +1,67 @@
 # PID Motor Simulator & Telemetry Dashboard
 
-A high-fidelity control system workbench developed in JavaFX to simulate, visualize, and profile a discrete PID controller. This tool provides a real-time graphical interface for tuning control gains and analyzing system stability under various load conditions.
-
-## Key Features
-*   **Second-Order Plant Simulation**: Accurately models physical hardware by simulating Mass, Inertia, and Damping through numerical integration ($F=ma$).
-*   **Dynamic Load Scaling**: Includes a real-time Mass slider and label to adjust motor inertia on the fly, allowing for robustness testing against variable physical loads.
-*   **Discrete PID Controller**: Implements a full Proportional-Integral-Derivative (PID) loop with Integral Anti-Windup to prevent actuator saturation issues.
-*   **Signal Processing**: Utilizes an Exponential Moving Average (EMA) filter on the derivative term to suppress high-frequency noise and jitter.
-*   **Performance Profiling**: Automated calculation of Rise Time (10-90%), Settling Time (2% criterion), and Overshoot percentage.
-*   **Interactive Telemetry**: Real-time multi-lane graphing of Process Variable (PV), Setpoint (SP), and Control Effort (Output).
-*   **Static Friction (Stiction) Simulation**: Logic handles minimum power thresholds to simulate real-world motor breakaway torque.
-
-## Technical Implementation
-
-### The Physics Model (Second-Order)
-The simulator utilizes a discrete-time physics engine to calculate motor motion:
-1.  **Acceleration**: $a = \frac{(Power \times Scale) - (Velocity \times Damping)}{Mass}$
-2.  **Velocity Integration**: $v_{n} = v_{n-1} + (a \times dt)$
-3.  **Position Integration**: $p_{n} = p_{n-1} + (v \times dt)$
-
-### The Control Logic
-The firmware logic calculates motor effort using discrete-time integration and differentiation:
-1.  **Proportional ($k_P$):** Immediate response to current error.
-2.  **Integral ($k_I$):** Eliminates steady-state error with a software-capped summation to prevent windup.
-3.  **Derivative ($k_D$):** Predicts future error to dampen oscillations, smoothed via a low-pass filter. In second-order mode, this acts as the primary braking force against simulated inertia.
-
-## System Characterization (Fixed Hardware)
-Testing was conducted using a fixed motor constant and a `Mass = 1.00` load to simulate real-world hardware constraints.
-
-### Observed Performance Envelope
-Through iterative tuning, it was determined that the physical constraints of the 1kg mass create a performance ceiling for the current motor constant:
-*   **Maximum Stable Aggression**: $k_P = 0.0450$. 
-*   **Rise Time Floor**: 2.93s. Attempts to force the rise time lower result in momentum that exceeds the damping capabilities of the software controller.
-*   **Settling Time Limit**: 7.20s. Increasing $k_D$ beyond 3.50 results in discrete-time noise amplification without improving stability.
-
-### Engineering Conclusion
-With the current second-order plant physics, a 2s Rise Time is physically unattainable without hardware-level modifications (e.g., increasing motor torque). The "Golden Tune" for this specific configuration is identified as $k_P = 0.0350$ and $k_D = 1.92$, yielding a balanced 2.9s Rise and 7.2s Settling time.
-
-## Project Structure
-*   **`Simulator.TelemetryDashboard`**: The central controller managing the high-frequency loop and UI events.
-*   **`Simulator.VirtualMotor`**: A physics-based model of a DC motor's position and velocity, including mutable mass and damping variables.
-*   **Hardware-Agnostic Design**: The PID logic is written to be easily portable to embedded C for microcontrollers.
-
-## Controls & Tuning Ranges
-| Parameter | Range | Description |
-| :--- | :--- | :--- |
-| **$k_P$** | 0.0 - 0.10 | Primary gain for error correction. |
-| **$k_I$** | 0.0 - 0.001 | Accumulates error to reach the exact setpoint. |
-| **$k_D$** | 0.0 - 4.0 | Dampens movement; high values required for high-mass stability. |
-| **Mass** | 0.1 - 5.0 | Adjusts system inertia; defines the physical limits of the simulation. |
+A real-time control system simulator designed to model second-order physical systems and analyze how PID controllers behave under realistic constraints.
 
 ---
 
-**Current Status**: Fully functional tuning workbench with second-order physics support.
+## Why This Project Matters
+This project explores how software interacts with physical systems. Instead of ideal conditions, it models inertia, damping, and actuator limits to show how control algorithms behave in real-world scenarios.
 
-**Future Development**:
-- [ ] Port the core control logic to C for hardware integration.
-- [ ] Add CSV export functionality for post-test data analysis.
-- [ ] Implement Frequency Response (Bode Plot) generation.
+---
+
+## Key Features
+- **Second-Order Physics Simulation** — Models mass, inertia, and damping using numerical integration  
+- **Real-Time PID Controller** — Full PID loop with adjustable kP, kI, and kD gains  
+- **Integral Anti-Windup** — Prevents instability from accumulated error  
+- **Derivative Filtering (EMA)** — Reduces noise and jitter in the control signal  
+- **Dynamic Load Scaling** — Adjustable mass to test system robustness  
+- **Live Telemetry Dashboard** — Real-time graphing of position, setpoint, and control output  
+- **Performance Metrics** — Calculates rise time, settling time, and overshoot automatically  
+- **Static Friction Simulation** — Models breakaway torque behavior  
+
+---
+
+## Key Insight
+The system reveals a hard performance limit: with a fixed motor constant and mass, a 2-second rise time is physically unattainable. Increasing responsiveness leads to instability due to momentum exceeding available damping.
+
+This highlights a fundamental tradeoff in control systems:
+
+> Faster response vs system stability
+
+---
+
+## How It Works (Simplified)
+
+### Physics Model
+- Acceleration depends on force, damping, and mass  
+- Velocity and position are updated each frame (~60Hz)  
+
+### Control Loop
+- **Proportional (kP):** reacts to current error  
+- **Integral (kI):** removes steady-state error  
+- **Derivative (kD):** dampens motion and prevents overshoot  
+
+---
+
+## Tech Stack
+- Java / JavaFX  
+- Real-time simulation loop (~60Hz)  
+- Object-oriented design  
+
+---
+
+## Architecture
+- `TelemetryDashboard` — UI + control loop  
+- `VirtualMotor` — physics simulation model  
+
+---
+
+## Current Status
+Fully functional real-time control system simulator with second-order physics and performance profiling.
+
+---
+
+## Future Work
+- Port control loop to C for embedded systems  
+- Add CSV export for analysis  
+- Implement frequency response (Bode plots)  
