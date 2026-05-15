@@ -93,7 +93,7 @@ void loop() {
     }
     vm.update(power, dd_t);
   }
-  double percentComplete = (currentPos - 100)/ ()target- 100) * 100;
+  double percentComplete = (currentPos - 100)/(target- 100) * 100;
   if( percentComplete <= 50){
       // Left redLight
       digitalWrite(7, HIGH);
@@ -101,7 +101,7 @@ void loop() {
       digitalWrite(5, LOW);
       digitalWrite(4, LOW);
       digitalWrite(3, LOW);
-  }else if ( (percentComplete > 50) && (error <=  90)){
+  }else if ( (percentComplete > 50) && (percentComplete <=  90)){
     // left yellow light
     digitalWrite(7, LOW);
       digitalWrite(6, HIGH);
