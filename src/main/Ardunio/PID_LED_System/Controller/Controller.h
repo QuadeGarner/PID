@@ -7,22 +7,24 @@ private:
     double error;
     double lastError;
     double target;
-    double derivate;
+    double currentPosition;
+    double rawDerviative;
+    double derviative;
     double power;
-    long currentTime;
-    long lastTime;
-    long delta_t;
     double dd_t;
 public:
     double getKp();
     void setKp(double);
     double getKd();
     void setKd(double);
-    double getError();
-    double getLastError();
+    double computeError();
+    double saveLastError();
     double getTarget();
+    double getCurrentPosition();
+    void setCurrentPosition(double);
     void setTarget(double);
-    double getDerivate();
-    double getPower();
+    double computerRawDerviative();
+    double computeDerviative();
+    double computePower();
 };
 #endif
