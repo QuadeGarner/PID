@@ -30,10 +30,10 @@ void loop() {
   controller.setKd(((double)analogRead(portKD) /4095) * 0.35);
   controller.setTarget((double)map(potVal, 0, 4095, 100, 600));
   Serial.print(String(controller.getTarget()) +",");
-  //Serial.print("Error: " + String(error) +"\n");
+  Serial.print(String(controller.computeError()) +",");
   Serial.print(String(vm.getPosition())+",");
   Serial.print(String(controller.getKp())+",");
-  Serial.print(String(controller.getKd())+"\n");
+  Serial.print(String(controller.getKd())+",");
   currentTime = millis();
   delta_t = currentTime - lastTime;
   dd_t = delta_t / 1000.0;
@@ -45,6 +45,7 @@ void loop() {
     vm.update(controller.getPower(), dd_t);
   }
   double percentComplete = (vm.getPosition() - 100)/(controller.getTarget()- 100) * 100;
+  Serial.print(String(percentComplete)+"\n");
   if( percentComplete <= 50){
       // Left redLight
       digitalWrite(7, HIGH);
