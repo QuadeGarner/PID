@@ -1,6 +1,6 @@
 #ifndef CONTROLLER_H
 #define CONTROLLER_H
-class Controler{
+class Controller{
 private:
     double kP;
     double kD;
@@ -23,8 +23,13 @@ public:
     double getCurrentPosition();
     void setCurrentPosition(double);
     void setTarget(double);
-    double computerRawDerviative();
+    double computeRawDerviative();
     double computeDerviative();
     double computePower();
+    double getPower();
+    void setDD_T(double);
+    double getDD_T();
+    void update();
+
 };
 #endif

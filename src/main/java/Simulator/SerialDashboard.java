@@ -71,14 +71,6 @@ public class SerialDashboard extends Application {
         robot.setCenterY(450);
         robot.setCenterX(50);
         root.getChildren().add(robot);
-//        Button trigger = new Button(" Trigger Step");
-//        trigger.setOnAction( event -> {
-//            setTrigger();
-//        });
-//        trigger.setLayoutX(100);
-//        trigger.setLayoutY(550);
-//        root.getChildren().add(trigger);
-
         pLabel = new Label();
         pLabel.setLayoutX(900);
         pLabel.setLayoutY(30);

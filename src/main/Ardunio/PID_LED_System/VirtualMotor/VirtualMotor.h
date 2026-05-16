@@ -9,6 +9,7 @@ private:
     double DAMPING;
     double POWER_SCALING;
 public:
+
     VirtualMotor(double, double, double,double);
     void update(double, double);
     double const getPosition();

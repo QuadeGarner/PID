@@ -12,13 +12,16 @@ double Controller::computeError(){
 double Controller::saveLastError(){lastError = error;}
 double Controller::getTarget(){return target;}
 void Controller::setTarget(double target){this-> target = target; }
-double Controller:: computerRawDerviative(){
+double Controller:: computeRawDerviative(){
     this-> rawDerviative = (this->computeError() - lastError )/ this->getDD_T();
     return rawDerviative;
 }
 double Controller::computeDerviative(){
     this -> derviative = (.1 * rawDerviative) + (.9 * derviative);
     return derviative;
+}
+double Controller:: getPower(){
+    return power;
 }
 double Controller::computePower(){
     this-> power = (error * this->getKp()) + (derviative * this->getKd());
@@ -36,8 +39,8 @@ double Controller::computePower(){
     return power;
 }
 double Controller:: getCurrentPosition(){return currentPosition;}
-void Controller:: setCurrentPosition(double currentPositon){this->currentPosition = currentPosition;}
-void Controller :: setDD_t(double dd ){this-> dd_t = dd;}
+void Controller:: setCurrentPosition(double currentPosition){this->currentPosition = currentPosition;}
+void Controller :: setDD_T(double dd_t){this-> dd_t = dd_t;}
 double Controller:: getDD_T(){return dd_t;}
 void Controller::update(){
     this -> computeError();

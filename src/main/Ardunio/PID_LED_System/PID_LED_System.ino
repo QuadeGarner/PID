@@ -1,43 +1,17 @@
-class VituralMotor{
-  private:
-    double position = 100;
-    double velocity = 0.0;
-    double acceleration;
-    double const MASS = 1;
-    const double DAMPING = 0.1; // FRICTION: amount of resistance
-    const double POWER_SCALING = 5.0 ;// motor strength
-  public:
-    void update(double inputPower, double DELTA_T){
-      double force = (inputPower * POWER_SCALING) - (velocity * DAMPING);
-      acceleration = force / MASS;
-      velocity +=(acceleration * DELTA_T);  // velocity = acceleration time the amount of time
+#include "VirtualMotor.h"
+#include "Controller.h"
 
-      position += velocity * DELTA_T ; // update the posistion based on the velocity and how much time has passed
-
-    }
-    double getPosition(){return position;}
-    double getVelocity(){return velocity;}
-
-
-};
 int const potPin = A0;
 int const portKP = A1;
 int const portKD = A3;
-VituralMotor vm;
-int KD;
-int KP;
-double kP;
-double kD;
-double error = 0;
-double currentPos;
-double lastError = 0;
-double target;
-double derviative;
-double power;
+VirtualMotor vm = VirtualMotor(double(100),double(1.0),0.1,double(5));
+Controller controller;
 long currentTime;
 long lastTime = 0;
-long delta_t = 0; 
-double dd_t = 0;
+long delta_t = 0;
+double dd_t;
+
+
 
 
 void setup() {
@@ -52,48 +26,25 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   int potVal = analogRead(potPin);
-  KP = analogRead(portKP);
-  KD = analogRead(portKD);
-  kP = ((double)KP / 4095) * 0.04; 
-  kD = ((double)KD / 4095) * 0.35;
- 
-  
-  
-  target = (double)map(potVal, 0, 4095, 100, 600);
-  Serial.print(String (target) +",");
+  controller.setKp(((double)analogRead(portKP)/ 4095) * 0.04);
+  controller.setKd(((double)analogRead(portKD) /4095) * 0.35);
+  controller.setTarget((double)map(potVal, 0, 4095, 100, 600));
+  Serial.print(String(controller.getTarget()) +",");
   //Serial.print("Error: " + String(error) +"\n");
-  Serial.print(String(currentPos)+",");
-  Serial.print(String(kP)+",");
-  Serial.print(String(kD)+"\n");
+  Serial.print(String(vm.getPosition())+",");
+  Serial.print(String(controller.getKp())+",");
+  Serial.print(String(controller.getKd())+"\n");
   currentTime = millis();
-  currentPos = vm.getPosition();
   delta_t = currentTime - lastTime;
   dd_t = delta_t / 1000.0;
+  controller.setDD_T(dd_t);
   lastTime = currentTime;
   if (dd_t > 0.0015){
-    error = target - currentPos;
-    // clamp delta_t if to big
-    if(dd_t > 0.25){
-      dd_t = 0.25;
-    }
-    double rawDerivate = (error - lastError) / dd_t;
-    lastError = error;
-    derviative = (0.1*rawDerivate) + (0.9 * derviative);
-    power = (error * kP) + (derviative * kD);
-    if(power > 1.0 ){
-      power = 1.0;
-    }
-    if(power < -1.0){
-      power = -1.0;
-    }
-    if( power < 0.05 && power > 0) {
-      power = 0.05;
-    }else if( power > -0.05 && power < 0){
-      power = -.05;
-    }
-    vm.update(power, dd_t);
+    controller.setCurrentPosition(vm.getPosition());
+    controller.update();
+    vm.update(controller.getPower(), dd_t);
   }
-  double percentComplete = (currentPos - 100)/(target- 100) * 100;
+  double percentComplete = (vm.getPosition() - 100)/(controller.getTarget()- 100) * 100;
   if( percentComplete <= 50){
       // Left redLight
       digitalWrite(7, HIGH);
