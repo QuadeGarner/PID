@@ -12,12 +12,14 @@ public class GraphPane extends Pane{
     public Rectangle rect = new Rectangle(800, 400, Color.LIGHTGRAY);
 
     public void setGraphLayout(){
+        rect.setLayoutX(50);
         getChildren().addAll(rect, createMotorLine(),createPowerLine(), createTargetLine());
+
     }
     public void updateGraph(double time, double targetPoint, double motorPoint, double powerPoint){
-        addTargetPoint(time, targetPoint);
-        addMotorPoint(time, motorPoint);
-        addPowerPoint(time, powerPoint);
+        addTargetPoint(time, 200 - targetPoint);
+        addMotorPoint(time, 200- motorPoint);
+        addPowerPoint(time,300 - (powerPoint * 80));
     }
     public void clearGraph(){
         motorLine.getPoints().clear();

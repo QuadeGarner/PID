@@ -11,15 +11,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class DataDTO {
-    private double kP, kD,kI,overShoot, riseTime, settlingTime;
-
-    public DataDTO toDTO(DataCalculations data){
-        setKD(data.getKD());
-        setKI(data.getKI());
-        setKP(data.getKP());
-        setOverShoot(data.getOverShoot());
-        setSettlingTime(data.getSettlingTime());
-        setRiseTime(data.getRiseTime());
-    }
+    private double kP, kD,kI,overShoot, riseTime, settlingTime , power, targetMap, posMap;
 
 }

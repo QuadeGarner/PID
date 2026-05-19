@@ -12,13 +12,16 @@ import lombok.Setter;
 @Setter
 public class DataPane extends Pane {
     Rectangle rect = new Rectangle(250, 300, Color.DARKGRAY);
+
     Label pLabel, dLabel, iLabel, overShootLabel, riseTimeLabel, settlingTimeLabel;
     DataDTO dto;
 
     public void setDataPane(){
+        rect.setLayoutX(880);
+        rect.setLayoutY(20);
         getChildren().addAll(rect, createPLabel(),createDLabel(), createILabel(), createOverShootLabel(), createRiseTimeLabel(),createSettlingTimeLabel() );
     }
-    public void updateLabels(){
+    public void updateLabels(DataDTO dto){
         updatePLabel(dto.getKP());
         updateILabel(dto.getKI());
         updateDLabel(dto.getKD());

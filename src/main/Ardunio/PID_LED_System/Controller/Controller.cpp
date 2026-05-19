@@ -42,6 +42,9 @@ double Controller:: getCurrentPosition(){return currentPosition;}
 void Controller:: setCurrentPosition(double currentPosition){this->currentPosition = currentPosition;}
 void Controller :: setDD_T(double dd_t){this-> dd_t = dd_t;}
 double Controller:: getDD_T(){return dd_t;}
+double Controller:: getLastError(){
+  return lastError;
+}
 void Controller::update(){
     this -> computeError();
     this-> computeRawDerviative();

@@ -30,6 +30,7 @@ public:
     void setDD_T(double);
     double getDD_T();
     void update();
+    double getLastError();
 
 };
 #endif

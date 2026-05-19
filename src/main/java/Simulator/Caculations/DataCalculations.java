@@ -1,5 +1,7 @@
 package Simulator.Caculations;
 
+import Simulator.Caculations.DataDTO.DataDTO;
+import Simulator.Caculations.DataDTO.SerialParserDTO;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,22 +18,24 @@ public class DataCalculations {
     Serial.print(String(percentComplete)+"\n"); percentComplete
      */
     // calculation data
-    private double overshoot,settlingTime, riseTime, posMap, targetMap;
+    private double overShoot,settlingTime, riseTime, posMap, targetMap;
     // needed data to calculate
-    double target, lastError, error,currentPos, percentComplete, startTime;
+    double target, lastError, error,currentPos, percentComplete, startTime, kP, kD, power, kI;
     int framesInBand = 0;
     double maxPosDuringStep = 0;
-    public void computeMetrics() {
+    public DataDTO computeMetrics() {
         computeOverShoot();
         computeRiseTime();
         computeSettlingTime();
         posMap = (currentPos - 100) * (200.0 / 500.0);
         targetMap = (target - 100) * (200.0 / 500.0);
+        return toDTO();
+
 
     }
     void computeOverShoot(){
-        overshoot = ((maxPosDuringStep - target) / target) * 100;
-        if (overshoot < 0) overshoot = 0;
+        overShoot = ((maxPosDuringStep - target) / target) * 100;
+        if (overShoot < 0) overShoot = 0;
     }
     void computeRiseTime(){
         if (percentComplete >= 0.10 && startTime == 0) {
@@ -53,5 +57,30 @@ public class DataCalculations {
         if (framesInBand > 60 && settlingTime == 0 && startTime != 0) {
             settlingTime = (System.currentTimeMillis() - startTime) / 1000.0;
         }
+    }
+    public void fromDTO(SerialParserDTO dto){
+        setTarget(dto.getTarget());
+        setError(dto.getError());
+        setCurrentPos(dto.getCurrentPos());
+        setLastError(dto.getLastError());
+        setPercentComplete(dto.getPercentComplete());
+        setKD(dto.getKD());
+        setKP(dto.getKP());
+        setKI(dto.getKI());
+        setPower(dto.getPower());
+    }
+    public DataDTO toDTO(){
+        DataDTO dto = new DataDTO();
+        dto.setKD(getKD());
+        dto.setKI(getKI());
+        dto.setKP(getKP());
+        dto.setOverShoot(getOverShoot());
+        dto.setSettlingTime(getSettlingTime());
+        dto.setRiseTime(getRiseTime());
+        dto.setPower(getPower());
+        dto.setPosMap(getPosMap());
+        dto.setTargetMap(getTargetMap());
+
+        return dto;
     }
 }
