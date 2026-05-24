@@ -1,256 +1,95 @@
 package Simulator;
 
 
+import Simulator.Caculations.DataCalculations;
+import Simulator.Caculations.DataDTO.DataDTO;
+import Simulator.Caculations.DataDTO.SerialParserDTO;
+import Simulator.CommandSection.CommandDTO;
+import Simulator.CommandSection.CommandPane;
+import Simulator.DataSection.DataPane;
+import Simulator.GraphSection.GraphPane;
+import Simulator.Parser.SerialParser;
 import com.fazecast.jSerialComm.*;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
-import javafx.scene.shape.Polyline;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
 
-import java.util.Scanner;
+import java.nio.charset.StandardCharsets;
+
 
 public class SerialDashboard extends Application {
-    SerialPort port = SerialPort.getCommPort("COM7");
-
-    VirtualMotor vm = new VirtualMotor();
-    Scanner scanner = new Scanner(port.getInputStream());
-    private double target;
-    private double kP;// Gain - sensitivity of the motor
-    private double kD; //
-    private double kI;
-    private double lastError = 500;
-    double currentPos;
-    double error;
-    double derivative;
-    double power;
-    double intergalSum = 0;
+    static SerialPort port = SerialPort.getCommPort("COM7");
+    SerialParserDTO dto ;
+    DataDTO dataDTO;
+    CommandDTO commandDTO = new CommandDTO();
+    DataCalculations c = new DataCalculations();
     double timeX = 0;
-    private Slider  iSlider, massSlider;
-    private Label pLabel, iLabel, dLabel, statsLabel, massLabel;
-    private double maxPosDuringStep =0;
-    private Polyline targetLine, motorLine, powerLine;
-    private int settleFrames = 0;
-    private  long startTime =0;
-    private double riseTime =0;
-    private  double settlingTime =0;
-    private  boolean rising = false;
-    private int framesInBand = 0;
+
+   boolean open = open(port);
+
+
+
+    static SerialParser parser = new SerialParser(port);
+
+
     @Override
     public void start(Stage primaryStage) {
-        boolean open = port.openPort();
-        port.setBaudRate(115200);
-        if (!open) {
-            return;
-        }
         Pane root = new Pane();
-        Pane graph = new Pane();
-        targetLine = new Polyline();
-        targetLine.setLayoutX(50);
-        targetLine.setStroke(Color.GREEN);
-        targetLine.setStrokeWidth(2);
-        motorLine = new Polyline();
-        motorLine.setLayoutX(50);
-        motorLine.setStroke(Color.YELLOW);
-        motorLine.setStrokeWidth(2);
-        powerLine = new Polyline();
-        powerLine.setStrokeWidth(2);
-        powerLine.setStroke(Color.WHITE);
-        powerLine.setLayoutX(50);
-        Rectangle rect = new Rectangle(800, 400, Color.LIGHTGRAY);
-        rect.setLayoutX(50);
+        startParser();
+        GraphPane graphPane = new GraphPane();
+        DataPane dataPane = new DataPane();
+        CommandPane commandPane = new CommandPane();
         Scene scene = new Scene(root, 1200, 600);
-        Circle robot = new Circle(10, Color.BLUE);
-        robot.setCenterY(450);
-        robot.setCenterX(50);
-        root.getChildren().add(robot);
-//        Button trigger = new Button(" Trigger Step");
-//        trigger.setOnAction( event -> {
-//            setTrigger();
-//        });
-//        trigger.setLayoutX(100);
-//        trigger.setLayoutY(550);
-//        root.getChildren().add(trigger);
-
-        pLabel = new Label();
-        pLabel.setLayoutX(900);
-        pLabel.setLayoutY(30);
-        pLabel.setTextFill(Color.BLACK);
-        iSlider = new Slider(0, 0.001, kI);
-        iSlider.setLayoutX(900);
-        iSlider.setLayoutY(120);
-        iSlider.setPrefWidth(200);
-        iLabel = new Label();
-        iLabel.setLayoutX(900);
-        iLabel.setLayoutY(100);
-        iLabel.setTextFill(Color.BLACK);
-
-        dLabel = new Label();
-        dLabel.setLayoutX(900);
-        dLabel.setLayoutY(170);
-        dLabel.setTextFill(Color.BLACK);
-        statsLabel = new Label();
-        statsLabel.setLayoutX(900);
-        statsLabel.setLayoutY(230);
-        statsLabel.setTextFill(Color.BLACK);
-        massSlider = new Slider();
-        massSlider.setMin(1.0);
-        massSlider.setMax(5.0);
-        massSlider.setLayoutX(900);
-        massSlider.setLayoutY(210);
-        massLabel = new Label("Mass");
-        massLabel.setLayoutX(900);
-        massLabel.setLayoutY(200);
-        Rectangle controlBg = new Rectangle(250, 250, Color.DARKGRAY);
-        controlBg.setLayoutX(880);
-        controlBg.setLayoutY(20);
-        controlBg.setArcWidth(10); // Rounded corners look professional
-        controlBg.setArcHeight(10);
-        root.getChildren().add(controlBg);
-        root.getChildren().addAll(iSlider, pLabel, iLabel, dLabel, statsLabel, massLabel, massSlider);
-        root.getChildren().add(graph);
-        root.getChildren().add(rect);
-        root.getChildren().add(motorLine);
-        root.getChildren().add(targetLine);
-        root.getChildren().add(powerLine);
-        if (scanner.hasNext()) {
-            AnimationTimer timer = new AnimationTimer() {
-                @Override
-                public void handle(long l) {
-                    if(scanner.hasNext()) {
-                        String s = scanner.nextLine();
-                        String[] stringSplit = s.split(",");
-                        if (stringSplit.length != 4 || stringSplit[0].isEmpty()|| stringSplit[1].isEmpty() || stringSplit[2].isEmpty()||stringSplit[3].isEmpty())  {
-                            return; // not the correct way to do this be just for testing
-                        }
-                        setTarget(Double.parseDouble(stringSplit[0]));
-                        kP = Double.parseDouble(stringSplit[2]);
-                        kI = iSlider.getValue();
-                        kD = Double.parseDouble(stringSplit[3]);
-                        vm.setMASS(massSlider.getValue());
-                        pLabel.setText(String.format("kP (Proportional): %.4f", kP));
-                        iLabel.setText(String.format("kI (Integral): %.6f", kI));
-                        dLabel.setText(String.format("kD (Derivative): %.4f", kD));
-                        massLabel.setText(String.format("Mass : %.2f", massSlider.getValue()));
-                        timeX += 0.5;
-                        if (target != Double.parseDouble(stringSplit[0])) {
-                            intergalSum = 0;
-                        }
-
-                        currentPos = Double.parseDouble(stringSplit[1]);
-                        error = target - currentPos;
-                        intergalSum += error;
-                        // capping the sum to 100 to prevent spiralling of the sum
-                        if (intergalSum > 100) {
-                            intergalSum = 100;
-                        }
-                        if (intergalSum < -100) {
-                            intergalSum = -100;
-                        }
-                        if (Math.abs(error) > 5) {
-                            if (currentPos > maxPosDuringStep && target > 100) {
-                                maxPosDuringStep = currentPos;
-                            }
-                        }
-                        double overshoot = ((maxPosDuringStep - target) / target) * 100;
-                        if (overshoot < 0) overshoot = 0;
-
-                        double percentComplete = (currentPos - 100) / (target - 100);
-
-                        if (percentComplete >= 0.10 && startTime == 0) {
-                            startTime = System.currentTimeMillis(); // Start the timer at 10%
-                        }
-                        if (percentComplete >= 0.90 && riseTime == 0 && startTime != 0) {
-                            riseTime = (System.currentTimeMillis() - startTime) / 1000.0; // Stop at 90%
-                        }
-                        statsLabel.setText(String.format("Overshoot: %.1f%%\n" + "Rise Time: %.2fs\n" + "Settling Time: %.2fs",
-                                overshoot, riseTime, settlingTime
-                        ));
-                        double rawDerivative = error - lastError;
-                        // smoothing factor
-                        derivative = (0.1 * rawDerivative) + (0.9 * derivative);
-                        power = (error * kP) + (kI * intergalSum) + (derivative * kD);
-                        lastError = error;
-                        double tolerance = target * 0.02; // 2% band
-                        if (Math.abs(error) < tolerance) {
-                            framesInBand++;
-                        } else {
-                            framesInBand = 0; // Reset if it bounces back out
-                        }
-
-                        // If it stays in the band for 60 consecutive frames (approx 1 second)
-                        if (framesInBand > 60 && settlingTime == 0 && startTime != 0) {
-                            settlingTime = (System.currentTimeMillis() - startTime) / 1000.0;
-                        }
-                        if (power > 1.0) {
-                            power = 1.0;
-                        }
-                        if (power < -1.0) {
-                            power = -1.0;
-                        }
-                        if (power < 0.05 && power > 0) {
-                            power = 0.05;
-                        } else if (power > -0.05 && power < 0) {
-                            power = -.05;
-                        }
-
-                        double posMap = (currentPos - 100) * (200.0 / 500.0);
-                        double targetMap = (target - 100) * (200.0 / 500.0);
-                        motorLine.getPoints().addAll(timeX, 200 - posMap);
-                        targetLine.getPoints().addAll(timeX, 200 - targetMap);
-                        powerLine.getPoints().addAll(timeX, 300 - (power * 80));
-
-                        if (timeX > 800) {
-                            motorLine.getPoints().clear();
-                            targetLine.getPoints().clear();
-                            powerLine.getPoints().clear();
-                            timeX = 0;
-                        }
-
-
-                        if (Math.abs(error) < 0.1 && Math.abs(vm.getVelocity()) < 0.1) {
-                            return;
-                        }
-                        //vm.update(power);
-                        robot.setCenterX(Double.parseDouble(stringSplit[1]));
-                    }
+        graphPane.setGraphLayout();
+        dataPane.setDataPane();
+        commandPane.setCommandPane();
+        root.getChildren().addAll(graphPane, dataPane, commandPane);
+        AnimationTimer timer = new AnimationTimer() {
+            @Override
+            public void handle(long l) {
+                if(commandDTO.getKD() != commandPane.getKDSliderValue()||
+                        commandDTO.getKP() != commandPane.getKPSliderValue()) {
+                    commandDTO = commandPane.toDTO();
+                    port.writeBytes(commandDTO.toString().getBytes(StandardCharsets.UTF_8), commandDTO.toString().length());
                 }
-            };
+                dto = parser.getLastDTO();
+                c.fromDTO(dto);
+                dataDTO = c.computeMetrics();
+                timeX += 0.5;
+                graphPane.updateGraph(timeX,dataDTO.getPosMap(),  dataDTO.getTargetMap() , dataDTO.getPower());
+                dataPane.updateLabels(dataDTO);
+                if (timeX > 800) {
+                    graphPane.clearGraph();
+                    timeX = 0;
+                }
+            }
+        };
             primaryStage.setTitle("Motor Firmware Telemetry");
             primaryStage.setScene(scene);
             primaryStage.show();
             timer.start();
-        }
     }
     public static void main(String[] args) {
         launch(args);
+    }
+    public boolean open(SerialPort port){
+        boolean open = port.openPort();
+        setBaudRate(port);
+        return open;
 
     }
-
-    private double getTarget(){
-        return target;
+    public void setBaudRate(SerialPort port){
+        port.setBaudRate(115200);
     }
-    private void setTarget(double n){
-        this.target = n;
+    public void startParser() throws IllegalThreadStateException{
+        parser.start();
     }
-    private void setTrigger(){
-        iSlider.setValue(0.0001);
-        targetLine.getPoints().clear();
-        powerLine.getPoints().clear();
-        motorLine.getPoints().clear();
-        timeX =0;
-        settleFrames = 0;
-        startTime =0;
-        riseTime =0;
-        settlingTime =0;
-        rising = false;
-        framesInBand = 0;
+    @Override
+    public void stop() throws Exception{
+        parser.stopPaser();
+        super.stop();
     }
 }

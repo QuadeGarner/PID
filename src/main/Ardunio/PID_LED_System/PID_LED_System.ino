@@ -1,43 +1,23 @@
-class VituralMotor{
-  private:
-    double position = 100;
-    double velocity = 0.0;
-    double acceleration;
-    double const MASS = 1;
-    const double DAMPING = 0.1; // FRICTION: amount of resistance
-    const double POWER_SCALING = 5.0 ;// motor strength
-  public:
-    void update(double inputPower, double DELTA_T){
-      double force = (inputPower * POWER_SCALING) - (velocity * DAMPING);
-      acceleration = force / MASS;
-      velocity +=(acceleration * DELTA_T);  // velocity = acceleration time the amount of time
+#include "VirtualMotor.h"
+#include "Controller.h"
+#include <math.h>
 
-      position += velocity * DELTA_T ; // update the posistion based on the velocity and how much time has passed
-
-    }
-    double getPosition(){return position;}
-    double getVelocity(){return velocity;}
-
-
-};
 int const potPin = A0;
 int const portKP = A1;
 int const portKD = A3;
-VituralMotor vm;
-int KD;
-int KP;
-double kP;
-double kD;
-double error = 0;
-double currentPos;
-double lastError = 0;
-double target;
-double derviative;
-double power;
+VirtualMotor vm = VirtualMotor(double(101),double(1.0),0.1,double(5));
+Controller controller;
 long currentTime;
 long lastTime = 0;
-long delta_t = 0; 
-double dd_t = 0;
+long delta_t = 0;
+double dd_t;
+double baseOffset = 100;
+double safeOffset =1;
+String field1;
+String field2;
+int delimiterDetectorValue = 0;
+int clearData = 0;
+
 
 
 void setup() {
@@ -52,48 +32,54 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   int potVal = analogRead(potPin);
-  KP = analogRead(portKP);
-  KD = analogRead(portKD);
-  kP = ((double)KP / 4095) * 0.04; 
-  kD = ((double)KD / 4095) * 0.35;
- 
-  
-  
-  target = (double)map(potVal, 0, 4095, 100, 600);
-  Serial.print(String (target) +",");
-  //Serial.print("Error: " + String(error) +"\n");
-  Serial.print(String(currentPos)+",");
-  Serial.print(String(kP)+",");
-  Serial.print(String(kD)+"\n");
+
+  while(Serial.available() && !clearData){
+    char c = Serial.read();
+    if(field2.length() > 30){
+      field1 = "";
+      field2 ="";
+      delimiterDetectorValue = 0;
+    }
+    if(c == ','){
+      delimiterDetectorValue = 1;
+    }else if(c != '\n' && delimiterDetectorValue != 1){
+      field1 += c ;
+    }else if(c != '\n' && delimiterDetectorValue == 1){
+      field2 += c;
+    }else{
+      clearData = 1;
+    }
+  }
+
+  controller.setTarget((double)map(potVal, 0, 4095, 101, 600));
+  if(clearData == 1){
+    controller.setKp(field1.toDouble());
+    controller.setKd(field2.toDouble());
+    field1 = "";
+    field2 = "";
+    clearData = 0;
+    delimiterDetectorValue = 0;
+  }
   currentTime = millis();
-  currentPos = vm.getPosition();
   delta_t = currentTime - lastTime;
   dd_t = delta_t / 1000.0;
+  controller.setDD_T(dd_t);
   lastTime = currentTime;
   if (dd_t > 0.0015){
-    error = target - currentPos;
-    // clamp delta_t if to big
-    if(dd_t > 0.25){
-      dd_t = 0.25;
-    }
-    double rawDerivate = (error - lastError) / dd_t;
-    lastError = error;
-    derviative = (0.1*rawDerivate) + (0.9 * derviative);
-    power = (error * kP) + (derviative * kD);
-    if(power > 1.0 ){
-      power = 1.0;
-    }
-    if(power < -1.0){
-      power = -1.0;
-    }
-    if( power < 0.05 && power > 0) {
-      power = 0.05;
-    }else if( power > -0.05 && power < 0){
-      power = -.05;
-    }
-    vm.update(power, dd_t);
+    controller.setCurrentPosition(vm.getPosition());
+    controller.update();
+    vm.update(controller.getPower(), dd_t);
   }
-  double percentComplete = (currentPos - 100)/(target- 100) * 100;
+  double percentComplete =0;
+  if( controller.getTarget() - baseOffset > 0 && controller.getTarget() - baseOffset <1 ){
+    percentComplete = (vm.getPosition() - safeOffset)/(controller.getTarget()- safeOffset) * 100;
+  }else{
+    percentComplete = (vm.getPosition() - baseOffset)/(controller.getTarget()- baseOffset) * 100;
+  }
+  percentComplete =  fabs(percentComplete);
+  Serial.print(String(controller.getTarget()) +","+String(controller.computeError()) +","+
+  String(controller.getLastError())+","+String(vm.getPosition())+","+String(controller.getKp())+","
+  +String(controller.getKd())+","+String(percentComplete)+","+String(controller.getPower()) +"\n");
   if( percentComplete <= 50){
       // Left redLight
       digitalWrite(7, HIGH);
@@ -130,6 +116,6 @@ void loop() {
       digitalWrite(4, LOW);
       digitalWrite(3, HIGH);
   }
-
+  //delay(10);
 }
 
