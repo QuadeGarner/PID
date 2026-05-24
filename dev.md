@@ -1,28 +1,160 @@
 # Development & Contribution Guide
 
-This document outlines the environment setup, project architecture, and the roadmap for integrating the C-based firmware pipeline.
+This document outlines the architecture, development workflow, and future embedded systems roadmap for the PID Motor Simulator & Telemetry Dashboard.
 
-## Environment Setup
-*   **Java Version**: OpenJDK 17+ (Required for JavaFX compatibility).
-*   **UI Framework**: JavaFX for telemetry rendering and real-time graphing.
-*   **Build System**: Maven or Gradle, ensuring all dependencies for signal processing and UI components are resolved.
+---
 
-## Project Architecture
-The project follows a modular structure to maintain a clear separation between physics simulation and the user interface:
-*   **Physics Engine**: Located in `Simulator.VirtualMotor`, utilizing numerical integration for second-order plant modeling.
-*   **Control Layer**: Implements the discrete PID logic, including EMA filtering for the derivative term and anti-windup logic.
-*   **View/Controller**: Located in `Simulator.TelemetryDashboard`, handling the high-frequency UI refresh loop (typically 60Hz) and event handling for sliders.
+# Environment Setup
 
-## Current Roadmap
-- [x] Implement Second-Order Plant Logic (Inertia/Damping simulation).
-- [x] Add Dynamic Mass Scaling with real-time UI updates.
-- [x] Achieve system stability (Settling Time < 0.6s).
-- [ ] **Phase 2: C-Pipeline Integration**
-    - [ ] Port core PID calculations to a C source file.
-    - [ ] Implement a JNI (Java Native Interface) bridge or socket-based communication layer.
-    - [ ] Compare execution overhead between the JVM and Native C implementation.
+## Desktop Application
+- Java 17+
+- JavaFX
+- jSerialComm
 
-## Development Standards
-*   **Version Control**: Maintain a structured commit history with descriptive messages to track feature progression.
-*   **Unit Testing**: Verify PID logic transitions and ensure the Step Response trigger consistently reports accurate Rise Time and Settling Time metrics.
-*   **Documentation**: Ensure the README remains the source of truth for physical constants and current tuning ranges.
+## Embedded Firmware
+- Arduino IDE / PlatformIO
+- UART serial transport @ 115200 baud
+
+---
+
+# Architecture Overview
+
+The project is divided into two major subsystems:
+
+## 1. Desktop Telemetry System
+
+Responsible for:
+- telemetry visualization,
+- runtime graphing,
+- command transmission,
+- metric analysis,
+- parser lifecycle management.
+
+### Major Components
+
+#### `SerialDashboard`
+- JavaFX application lifecycle
+- UI orchestration
+- serial command transmission
+- parser thread management
+
+#### `SerialParser`
+Dedicated UART telemetry parser thread:
+- blocking serial reads,
+- packet validation,
+- telemetry DTO generation,
+- graceful shutdown handling.
+
+#### `GraphPane`
+High-frequency telemetry rendering:
+- target position,
+- actual motor position,
+- controller output.
+
+#### `DataCalculations`
+Computes:
+- overshoot,
+- settling time,
+- rise time,
+- telemetry normalization.
+
+---
+
+## 2. Embedded Firmware System
+
+Responsible for:
+- realtime control execution,
+- physics simulation,
+- telemetry transmission,
+- runtime command parsing.
+
+### Firmware Architecture
+
+#### Physics Layer
+- Second-order plant simulation
+- Numerical integration
+- Damping and friction modeling
+
+#### Control Layer
+- PID control loop
+- EMA derivative filtering
+- Anti-windup logic
+
+#### Communication Layer
+Implements:
+- UART telemetry streaming
+- runtime command reception
+- streaming packet parser
+- parser resynchronization logic
+
+---
+
+# Embedded Communication Design
+
+## Telemetry Transport
+
+Firmware continuously streams telemetry packets:
+
+```text
+target,error,lastError,currentPosition,kP,kD,percentComplete,power\n
+```
+
+## Runtime Command Packets
+
+Desktop application transmits runtime controller gains:
+
+```text
+kP,kD\n
+```
+
+---
+
+# Parser Design Notes
+
+The embedded parser evolved through several iterations:
+- naive string accumulation,
+- blocking transport debugging,
+- parser synchronization handling,
+- malformed packet recovery,
+- bounded packet protection,
+- deterministic parser reset handling.
+
+Current parser behavior:
+- byte-stream processing,
+- delimiter-driven field separation,
+- newline packet framing,
+- overflow recovery,
+- parser resynchronization.
+
+---
+
+# Current Roadmap
+
+## Completed
+- [x] Second-order plant simulation
+- [x] Realtime PID control
+- [x] Telemetry dashboard
+- [x] UART telemetry streaming
+- [x] Bidirectional serial communication
+- [x] Runtime PID tuning
+- [x] Streaming UART parser
+- [x] Parser recovery handling
+- [x] Graceful parser thread shutdown
+
+---
+
+## In Progress
+- [ ] Replace dynamic String parser with fixed-size buffer parser
+- [ ] Add runtime kI tuning
+- [ ] Improve parser state-machine architecture
+
+---
+
+## Planned
+- [ ] CAN/J1939 communication layer
+- [ ] Binary telemetry protocol
+- [ ] STM32 firmware port
+- [ ] Watchdog safety system
+- [ ] Data logging subsystem
+- [ ] Unit testing for parser synchronization edge cases
+- [ ] Multi-controller simulation support
