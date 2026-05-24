@@ -3,6 +3,8 @@ package Simulator.Parser;
 import Simulator.Caculations.DataDTO.SerialParserDTO;
 import com.fazecast.jSerialComm.SerialPort;
 import com.fazecast.jSerialComm.SerialPortIOException;
+import com.fazecast.jSerialComm.SerialPortTimeoutException;
+import javafx.application.Platform;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -18,6 +20,7 @@ public class SerialParser extends Thread {
     private double target, error, lastError, currentPos, kP, KD, percentComplete, power;
     String start = "";
     BufferedReader bufferedReader ;
+    private boolean running = true;
     public SerialParser(SerialPort port) {
         this.port = port;
         bufferedReader = new BufferedReader(new InputStreamReader(port.getInputStream()));
@@ -37,7 +40,6 @@ public class SerialParser extends Thread {
         try {
             String s = bufferedReader.readLine();
             String[] stringSplit = s.split(",");
-
             if (!(stringSplit.length != 8 || stringSplit[0].isEmpty() || stringSplit[1].isEmpty() ||
                     stringSplit[2].isEmpty() || stringSplit[3].isEmpty() || stringSplit[4].isEmpty() || stringSplit[5].isEmpty()
                     || stringSplit[6].isEmpty() || stringSplit[7].isEmpty())) {
@@ -50,9 +52,11 @@ public class SerialParser extends Thread {
                 setPercentComplete(Double.parseDouble(stringSplit[6]));
                 setPower(Double.parseDouble(stringSplit[7]));
             }
-            System.out.println(s);
-        }catch (IOException se){
-            System.out.println();
+        }catch (SerialPortTimeoutException ignored){
+        } catch (IOException e) {
+            e.printStackTrace();
+            stopPaser();
+            Platform.exit();
         }
     }
     public SerialParserDTO toDTO(){
@@ -68,9 +72,13 @@ public class SerialParser extends Thread {
         return dto;
     }
     public void run(){
-        while(true){
+        while(running){
             scanData();
         }
+    }
+    public void stopPaser(){
+        running = false;
+        port.closePort();
     }
     public SerialParserDTO getLastDTO(){
         return toDTO();

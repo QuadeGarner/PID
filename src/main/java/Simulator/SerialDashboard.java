@@ -4,23 +4,27 @@ package Simulator;
 import Simulator.Caculations.DataCalculations;
 import Simulator.Caculations.DataDTO.DataDTO;
 import Simulator.Caculations.DataDTO.SerialParserDTO;
+import Simulator.CommandSection.CommandDTO;
+import Simulator.CommandSection.CommandPane;
 import Simulator.DataSection.DataPane;
 import Simulator.GraphSection.GraphPane;
 import Simulator.Parser.SerialParser;
 import com.fazecast.jSerialComm.*;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 
+import java.nio.charset.StandardCharsets;
 
 
 public class SerialDashboard extends Application {
-    SerialPort port = SerialPort.getCommPort("COM7");
+    static SerialPort port = SerialPort.getCommPort("COM7");
     SerialParserDTO dto ;
     DataDTO dataDTO;
-
+    CommandDTO commandDTO = new CommandDTO();
     DataCalculations c = new DataCalculations();
     double timeX = 0;
 
@@ -28,7 +32,7 @@ public class SerialDashboard extends Application {
 
 
 
-    SerialParser parser = new SerialParser(port);
+    static SerialParser parser = new SerialParser(port);
 
 
     @Override
@@ -37,13 +41,20 @@ public class SerialDashboard extends Application {
         startParser();
         GraphPane graphPane = new GraphPane();
         DataPane dataPane = new DataPane();
+        CommandPane commandPane = new CommandPane();
         Scene scene = new Scene(root, 1200, 600);
         graphPane.setGraphLayout();
         dataPane.setDataPane();
-        root.getChildren().addAll(graphPane, dataPane);
+        commandPane.setCommandPane();
+        root.getChildren().addAll(graphPane, dataPane, commandPane);
         AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long l) {
+                if(commandDTO.getKD() != commandPane.getKDSliderValue()||
+                        commandDTO.getKP() != commandPane.getKPSliderValue()) {
+                    commandDTO = commandPane.toDTO();
+                    port.writeBytes(commandDTO.toString().getBytes(StandardCharsets.UTF_8), commandDTO.toString().length());
+                }
                 dto = parser.getLastDTO();
                 c.fromDTO(dto);
                 dataDTO = c.computeMetrics();
@@ -63,7 +74,6 @@ public class SerialDashboard extends Application {
     }
     public static void main(String[] args) {
         launch(args);
-
     }
     public boolean open(SerialPort port){
         boolean open = port.openPort();
@@ -76,5 +86,10 @@ public class SerialDashboard extends Application {
     }
     public void startParser() throws IllegalThreadStateException{
         parser.start();
+    }
+    @Override
+    public void stop() throws Exception{
+        parser.stopPaser();
+        super.stop();
     }
 }

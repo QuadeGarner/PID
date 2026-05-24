@@ -13,7 +13,10 @@ long delta_t = 0;
 double dd_t;
 double baseOffset = 100;
 double safeOffset =1;
-
+String field1;
+String field2;
+int delimiterDetectorValue = 0;
+int clearData = 0;
 
 
 
@@ -29,9 +32,34 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
   int potVal = analogRead(potPin);
-  controller.setKp(((double)analogRead(portKP)/ 4095) * 0.04);
-  controller.setKd(((double)analogRead(portKD) /4095) * 0.35);
+
+  while(Serial.available() && !clearData){
+    char c = Serial.read();
+    if(field2.length() > 30){
+      field1 = "";
+      field2 ="";
+      delimiterDetectorValue = 0;
+    }
+    if(c == ','){
+      delimiterDetectorValue = 1;
+    }else if(c != '\n' && delimiterDetectorValue != 1){
+      field1 += c ;
+    }else if(c != '\n' && delimiterDetectorValue == 1){
+      field2 += c;
+    }else{
+      clearData = 1;
+    }
+  }
+
   controller.setTarget((double)map(potVal, 0, 4095, 101, 600));
+  if(clearData == 1){
+    controller.setKp(field1.toDouble());
+    controller.setKd(field2.toDouble());
+    field1 = "";
+    field2 = "";
+    clearData = 0;
+    delimiterDetectorValue = 0;
+  }
   currentTime = millis();
   delta_t = currentTime - lastTime;
   dd_t = delta_t / 1000.0;
