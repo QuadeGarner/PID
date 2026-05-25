@@ -1,5 +1,7 @@
 #include "VirtualMotor.h"
 #include "Controller.h"
+#include "FieldLoadingStates.h"
+#include "CurrentStates.h"
 #include <math.h>
 
 int const potPin = A0;
@@ -18,10 +20,10 @@ double  field1;
 double field2;
 char field1Arr[32];
 char field2Arr[32];
-int delimiterDetectorValue = 0;
-int clearData = 0;
 int i =0;
 int j = 0;
+FieldLoadingState state = FieldLoadingState::FIELD1;
+CurrentState currState = CurrentState:: WAITING_FOR_DATA;
 
 
 
@@ -38,41 +40,46 @@ void loop() {
   // put your main code here, to run repeatedly:
   int potVal = analogRead(potPin);
 
-  while(Serial.available() && !clearData){
+  while(Serial.available() && state != CLEARDATA){
     char c = Serial.read();
     if( i > 30 || j >30 ){
+      currState = CurrentState:: PACKET_ERROR;
       field1 = 0;
       field2 = 0;
       i = 0;
       j =0;
-      delimiterDetectorValue = 0;
+      currState = CurrentState:: RECOVERY;
     }
     if(c == ','){
-      delimiterDetectorValue = 1;
+      currState = CurrentState:: READING_DATA_FOR_FIELD3;
+      state= FieldLoadingState::FIELD3
       field1Arr[i] = '\0';
     }
-    else if(c != '\n' && delimiterDetectorValue != 1){
+    else if(c != '\n' && state == FieldLoadingState::FIELD1){
+      currState = CurrentState::READING_DATA_FOR_FIELD1;
       field1Arr[i] = c;
       i++;
-    }else if(c != '\n' && delimiterDetectorValue == 1){
+    }else if(c != '\n' &&  state == FieldLoadingState::FIELD3){
       field2Arr[j] = c;
       j++;
     }
     else{
-      clearData = 1;
+      currState = CurrentState::PACKET_COMPLETE;
+      state = FieldLoadingState::CLEARDATA;
       field2Arr[j] = '\0';
     }
 }
   field1 = atof(field1Arr);
   field2 = atof(field2Arr);
   controller.setTarget((double)map(potVal, 0, 4095, 101, 600));
-  if(clearData == 1){
+  if(state == state::CLEARDATA){
     controller.setKp(field1);
     controller.setKd(field2);
     field1 = 0;
     field2 = 0;
     clearData = 0;
-    delimiterDetectorValue = 0;
+    state= FieldLoadingState::FIELD1;
+    currState = CurrentState:: WAITING_FOR_DATA;
     i = 0;
     j = 0;
     std::fill(std::begin(field1Arr), std::end(field1Arr), NULL);
