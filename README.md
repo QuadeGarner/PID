@@ -173,7 +173,6 @@ Fully functional:
 ## Future Work
 
 - Add CAN/J1939 transport layer
-- Replace String-based parser with fixed-size char buffer parser
 - Add binary packet protocol
 - Add telemetry logging / CSV export
 - Add frequency-response analysis (Bode plots)
