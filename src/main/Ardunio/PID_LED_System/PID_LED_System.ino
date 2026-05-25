@@ -13,10 +13,15 @@ long delta_t = 0;
 double dd_t;
 double baseOffset = 100;
 double safeOffset =1;
-String field1;
-String field2;
+char inputArr[64];
+double  field1;
+double field2;
+char field1Arr[32];
+char field2Arr[32];
 int delimiterDetectorValue = 0;
 int clearData = 0;
+int i =0;
+int j = 0;
 
 
 
@@ -35,30 +40,43 @@ void loop() {
 
   while(Serial.available() && !clearData){
     char c = Serial.read();
-    if(field2.length() > 30){
-      field1 = "";
-      field2 ="";
+    if( i > 30 || j >30 ){
+      field1 = 0;
+      field2 = 0;
+      i = 0;
+      j =0;
       delimiterDetectorValue = 0;
     }
     if(c == ','){
       delimiterDetectorValue = 1;
-    }else if(c != '\n' && delimiterDetectorValue != 1){
-      field1 += c ;
-    }else if(c != '\n' && delimiterDetectorValue == 1){
-      field2 += c;
-    }else{
-      clearData = 1;
+      field1Arr[i] = '\0';
     }
-  }
-
+    else if(c != '\n' && delimiterDetectorValue != 1){
+      field1Arr[i] = c;
+      i++;
+    }else if(c != '\n' && delimiterDetectorValue == 1){
+      field2Arr[j] = c;
+      j++;
+    }
+    else{
+      clearData = 1;
+      field2Arr[j] = '\0';
+    }
+}
+  field1 = atof(field1Arr);
+  field2 = atof(field2Arr);
   controller.setTarget((double)map(potVal, 0, 4095, 101, 600));
   if(clearData == 1){
-    controller.setKp(field1.toDouble());
-    controller.setKd(field2.toDouble());
-    field1 = "";
-    field2 = "";
+    controller.setKp(field1);
+    controller.setKd(field2);
+    field1 = 0;
+    field2 = 0;
     clearData = 0;
     delimiterDetectorValue = 0;
+    i = 0;
+    j = 0;
+    std::fill(std::begin(field1Arr), std::end(field1Arr), NULL);
+    std::fill(std::begin(field2Arr), std::end(field2Arr), NULL);
   }
   currentTime = millis();
   delta_t = currentTime - lastTime;
