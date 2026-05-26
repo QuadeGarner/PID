@@ -12,7 +12,8 @@ import javafx.scene.shape.Circle;
 import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
-
+// This is the Based Dashboard that I put together with the help of CHATGPT. All code outside of this file was written
+// and tested by myself
 public class TelemetryDashboard extends Application {
     VirtualMotor vm = new VirtualMotor();
     private double target;
