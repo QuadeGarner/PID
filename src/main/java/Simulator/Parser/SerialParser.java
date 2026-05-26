@@ -17,7 +17,7 @@ import java.util.Scanner;
 @Getter
 public class SerialParser extends Thread {
     SerialPort port;
-    private double target, error, lastError, currentPos, kP, KD, percentComplete, power;
+    private double target, error, lastError, currentPos, kP, kI, KD, percentComplete, power;
     String start = "";
     BufferedReader bufferedReader ;
     private boolean running = true;
@@ -40,17 +40,18 @@ public class SerialParser extends Thread {
         try {
             String s = bufferedReader.readLine();
             String[] stringSplit = s.split(",");
-            if (!(stringSplit.length != 8 || stringSplit[0].isEmpty() || stringSplit[1].isEmpty() ||
+            if (!(stringSplit.length != 9 || stringSplit[0].isEmpty() || stringSplit[1].isEmpty() ||
                     stringSplit[2].isEmpty() || stringSplit[3].isEmpty() || stringSplit[4].isEmpty() || stringSplit[5].isEmpty()
-                    || stringSplit[6].isEmpty() || stringSplit[7].isEmpty())) {
+                    || stringSplit[6].isEmpty() || stringSplit[7].isEmpty()||stringSplit[8].isEmpty())) {
                 setTarget(Double.parseDouble(stringSplit[0]));
                 setError(Double.parseDouble(stringSplit[1]));
                 setLastError(Double.parseDouble(stringSplit[2]));
                 setCurrentPos(Double.parseDouble(stringSplit[3]));
                 setKP(Double.parseDouble(stringSplit[4]));
-                setKD(Double.parseDouble(stringSplit[5]));
-                setPercentComplete(Double.parseDouble(stringSplit[6]));
-                setPower(Double.parseDouble(stringSplit[7]));
+                setKI(Double.parseDouble(stringSplit[5]));
+                setKD(Double.parseDouble(stringSplit[6]));
+                setPercentComplete(Double.parseDouble(stringSplit[7]));
+                setPower(Double.parseDouble(stringSplit[8]));
             }
         }catch (SerialPortTimeoutException ignored){
         } catch (IOException e) {
@@ -65,6 +66,7 @@ public class SerialParser extends Thread {
         dto.setError(getError());
         dto.setLastError(getLastError());
         dto.setKD(getKD());
+        dto.setKI(getKI());
         dto.setKP(getKP());
         dto.setPercentComplete(getPercentComplete());
         dto.setCurrentPos(getCurrentPos());

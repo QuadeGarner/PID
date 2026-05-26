@@ -7,11 +7,12 @@ import lombok.Setter;
 @Getter
 public class CommandDTO {
     private double kP;
+    private double kI;
     private double kD;
 
 
     @Override
     public String toString() {
-        return getKP() +"," + getKD()+"\n";
+        return getKP() +","+getKI()+"," + getKD()+"\n";
     }
 }

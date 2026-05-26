@@ -17,6 +17,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SerialParserDTO {
-    private double target, error, lastError, currentPos, kP,KD, percentComplete, power, kI;
+    private double target, error, lastError, currentPos, kP,kI,KD, percentComplete, power;
 
 }
