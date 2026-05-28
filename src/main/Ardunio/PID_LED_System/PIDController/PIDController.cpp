@@ -1,63 +1,54 @@
-#include "Controller.h"
+#include "PIDController.h"
 
 
-double Controller:: getKp(){return kP;}
-void Controller::setKp(double kP){this ->kP = kP;}
-double Controller::getKd(){return kD;}
-void Controller::setKd(double kD){this->kD=kD;}
-double Controller::computeError(){
-    this ->error = this->getTarget() - this ->getCurrentPosition();
+double PIDController:: getKp(){return kP;}
+void PIDController::setKp(double kP){this ->kP = kP;}
+double PIDController::getKd(){return kD;}
+void PIDController::setKd(double kD){this->kD=kD;}
+double PIDController::getKi(){return kI;}
+void PIDController::setKi(double kI){this -> kI=kI;}
+double PIDController::computeError(double target, double currentPosition){
+    this-> error = target - currentPosition;
     return error;
 }
-double Controller::saveLastError(){lastError = error;}
-double Controller::getTarget(){return target;}
-void Controller::setTarget(double target){this-> target = target; }
-double Controller:: computeRawDerviative(){
-    this-> rawDerviative = (this->computeError() - lastError )/ this->getDD_T();
-    return rawDerviative;
-}
-double Controller::computeDerviative(){
-    this -> derviative = (.1 * rawDerviative) + (.9 * derviative);
-    return derviative;
-}
-double Controller:: getPower(){
-    return power;
-}
-double Controller::computePower(){
-    this-> power = (error * this->getKp()) + (derviative * this->getKd());
-    if(power > 1.0 ){
-      power = 1.0;
+void PIDController::saveLastError(){lastError = error;}
+double PIDController:: computeRawDerivative(double dd_t){
+    if( dd_t <= 0 ){
+        return derivative;
     }
-    if(power < -1.0){
-      power = -1.0;
-    }
-    if( power < 0.05 && power > 0) {
-      power = 0.05;
-    }else if( power > -0.05 && power < 0){
-      power = -.05;
-    }
-    return power;
+    this-> rawDerivative = (error - lastError )/ dd_t;
+    return rawDerivative;
 }
-double Controller:: getCurrentPosition(){return currentPosition;}
-void Controller:: setCurrentPosition(double currentPosition){this->currentPosition = currentPosition;}
-void Controller :: setDD_T(double dd_t){this-> dd_t = dd_t;}
-double Controller:: getDD_T(){return dd_t;}
-double Controller:: getLastError(){
+double PIDController::computeDerivative(){
+    this -> derivative = (.1 * rawDerivative) + (.9 * derivative);
+    return derivative;
+}
+double PIDController::computeIntegral(double dd_t){
+    this -> integralSum += error * dd_t;
+    if(integralSum > 100){
+        integralSum = 100;
+    }
+    if (integralSum < -100){
+        integralSum = -100;
+    }
+    return integralSum;
+}
+double PIDController:: getOutput(){
+    return output;
+}
+double PIDController::computeOutput(){
+    this-> output = (error * this->getKp()) +(integralSum * this->getKi())+ (derivative * this->getKd());
+    return output;
+}
+
+double PIDController:: getLastError(){
   return lastError;
 }
-void Controller::update(){
-    this -> computeError();
-    this-> computeRawDerviative();
+void PIDController::update(double target, double currentPosition, double dd_t){
+    this -> computeError(target, currentPosition);
+    this-> computeRawDerivative(dd_t);
+    this -> computeIntegral(dd_t);
     this -> saveLastError();
-    this -> computeDerviative();
-    this -> computePower();
-}
-double Controller::getHome(){
-    return home;
-}
-void Controller::setHome(double homePosition){
-    this->home = homePosition;
-}
-void Controller:: returnHome(){
-    this->target = home;
+    this -> computeDerivative();
+    this -> computeOutput();
 }

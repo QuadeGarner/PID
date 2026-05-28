@@ -1,39 +1,30 @@
-#ifndef CONTROLLER_H
-#define CONTROLLER_H
-class Controller{
+#ifndef PIDCONTROLLER_H
+#define PIDCONTROLLER_H
+class PIDController{
 private:
     double kP;
     double kD;
+    double kI;
     double error;
     double lastError;
-    double target;
-    double currentPosition;
-    double rawDerviative;
-    double derviative;
-    double power;
-    double dd_t;
-    double home;
+    double rawDerivative;
+    double derivative;
+    double output;
+    double integralSum;
 public:
     double getKp();
     void setKp(double);
     double getKd();
     void setKd(double);
-    double computeError();
-    double saveLastError();
-    double getTarget();
-    double getCurrentPosition();
-    void setCurrentPosition(double);
-    void setTarget(double);
-    double computeRawDerviative();
+    double getKi();
+    void setKi(double);
+    double computeError(double, double);
+    void saveLastError();
+    double computeRawDerviative(double);
     double computeDerviative();
-    double computePower();
-    double getPower();
-    void setDD_T(double);
-    double getDD_T();
-    void update();
-    double getLastError();
-    double getHome();
-    void setHome(double);
-    void returnHome();
+    double computeIntegral(double);
+    double computeOutput();
+    double getOutput();
+    void update(double, double, double)
 };
 #endif
