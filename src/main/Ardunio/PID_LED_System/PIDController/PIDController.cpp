@@ -52,3 +52,12 @@ void Controller::update(){
     this -> computeDerviative();
     this -> computePower();
 }
+double Controller::getHome(){
+    return home;
+}
+void Controller::setHome(double homePosition){
+    this->home = homePosition;
+}
+void Controller:: returnHome(){
+    this->target = home;
+}

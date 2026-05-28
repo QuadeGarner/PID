@@ -12,6 +12,7 @@ private:
     double derviative;
     double power;
     double dd_t;
+    double home;
 public:
     double getKp();
     void setKp(double);
@@ -31,6 +32,8 @@ public:
     double getDD_T();
     void update();
     double getLastError();
-
+    double getHome();
+    void setHome(double);
+    void returnHome();
 };
 #endif
