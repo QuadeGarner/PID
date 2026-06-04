@@ -1,5 +1,6 @@
 #ifndef SERIALMANAGER
 #define SERIALMANAGER
+#include "PacketParser.h"
 #include "CURRENTSTATE.h"
 class SerialManager{
     private:
@@ -7,6 +8,7 @@ class SerialManager{
         char readCharacter;
         long lastRead =0;
         char readByte();
+        PacketParser pp;
     public:
         char getData();
         char getReadCharacter();

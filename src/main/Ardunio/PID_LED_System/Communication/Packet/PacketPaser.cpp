@@ -2,6 +2,7 @@
 void PacketParser:: startPacket(){
     // Set state to Field 1
     status = FieldStates::BUILDING_PACKET;
+    p.setStartTime(millis());
     state = FieldLoadingState::FIELD1;
     // clear all the array data
     std::fill(std::begin(field1Arr), std::end(field1Arr), NULL);
@@ -12,14 +13,20 @@ void PacketParser:: startPacket(){
 }
 Packet PacketParser:: endPacket(){
     status = FieldStates::PACKET_COMPLETE;
-    Packet p;
     field1Arr[i] = '\0';
     field2Arr[j] = '\0';
     field3Arr[k] = '\0';
+    if(checkForEmptys()){
+       p.setStatus(PacketStatus::INVALID_NULL);
+       p.setCompletionTime(millis());
+       return p;
+    }
     p.setKP(atof(field1Arr));
     p.setKI(atof(field2Arr));
     p.setKD(atof(field3Arr));
     p.setCompletionTime(millis());
+    checkStatus(p);
+    checkValues(p);
     return p;
 }
 void PacketParser::processDelimiter(char c){
@@ -64,8 +71,7 @@ bool  PacketParser::isCharacterAllowed(char c){
         return true;
     }
 Packet PacketParser::createPacket( char c){
-    Packet p;
-    if(isCharacterAllowed(c)){
+        if(isCharacterAllowed(c)){
         if(determineTransportCharacter(c)){
             if( c == '$'){
                 startPacket();
@@ -75,21 +81,45 @@ Packet PacketParser::createPacket( char c){
                 return endPacket();
             }
         }else{
-            validateCharacter(c);
-            switch(state){
-                case FieldLoadingState::FIELD1:;
-                    fillArray(fieldArr1, c, i);
-                    i++;
-                    break;
-                case FieldLoadingState::FIELD2:
-                    fillArray(fieldArr2, c, j);
-                    j++;
-                    break;
-                case FieldLoadingState::FIELD3:
-                    fillArray(fieldArr3, c, k);
-                    k++;
-                    break;
+            if(validateCharacter(c)){
+                switch(state){
+                    case FieldLoadingState::FIELD1:;
+                        fillArray(fieldArr1, c, i);
+                        i++;
+                        break;
+                    case FieldLoadingState::FIELD2:
+                        fillArray(fieldArr2, c, j);
+                        j++;
+                        break;
+                    case FieldLoadingState::FIELD3:
+                        fillArray(fieldArr3, c, k);
+                        k++;
+                        break;
+                }
+            }else{
+                p.setCompletionTime(millis());
+                p.setStatus(PacketStatus::INVALID_CHARACTER);
+                return p;
             }
         }
+    }
+}
+void PacketParser::checkCompletionStatus(Packet p){
+    if(p.getCompletionTime() - p.getStartTime() > 1000){
+        p.setCompletionStatus(PacketCompletionStatus::INVAILD_PACKET_TIMEOUT);
+    }else{
+        p.setCompletionStatus(PacketCompletionStatus::VALID_COMPLETION_TIME);
+    }
+}
+bool PacketParser:: checkForEmptyValues(){
+    if(field1Arr[0] == NULL|| field2Arr[0] == NULL|| field3Arr[0] == NULL ){
+        return true;
+    }
+    return false;
+void PacketParser::checkValues(Packet p){
+    if(p.getKP() > 1|| p.getKI()> 0.1|| p.getKD() > 0.5 || p.getKP() < 0 || p.getKI() < 0|| p.getKD() < 0){
+        p.setStatus(PacketStatus::INVAILD_PACKET_RANGE)
+    }else
+       p.setStatus(PacketStatus::VALID);
     }
 }

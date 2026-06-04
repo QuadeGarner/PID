@@ -1,19 +1,31 @@
 #ifndef MOTIONCONTROLLER
 #define MOTIONCONTROLLER
+#include "VituralMotor.h"
+#include "TelemetryPacket.h"
+#include "TelemetryManager.h"
+#include "PIDController.h"
 class{
     private:
         double target;
-        double positon;
         static double home;
-        double power;
+        double time = 0;
+        double lastTime = 0;
+        PIDController controller;
+        VituralMotor vm;
+        TelemetryManager tm;
+
     public:
         double getTarget();
-        double getPosition();
         double getHome();
         double getPower();
+        double getTime();
+        void setLastTime(double);
         void setTarget(double);
-        void setPosition();
+        double getCycleTime();
+        void setTime();
         static void setHome(double);
         void setPower(double);
+        void run();
+        MotionCoordinator(TelemetryManager, VituralMotor, PIDController);
 };
 #endif

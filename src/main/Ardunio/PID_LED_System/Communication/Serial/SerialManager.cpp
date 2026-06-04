@@ -1,12 +1,13 @@
 #include "SERIALMANAGER.h"
 
-void SerialManager::getData(){
+char SerialManager::getData(){
     if(determineTimeOut()){
         currentState = CurrentState::TIMEOUT;
     }
-    while(Serial.avaiable() && currentState !=CurrentState::TIMEOUT){
+    if(Serial.avaiable() && currentState !=CurrentState::TIMEOUT){
         readCharacter = readByte();
         lastRead = millis();
+        return readCharacter;
     }
 }
 char SerialManager::getReadCharacter(){
@@ -21,5 +22,5 @@ bool SerialManager:: determineTimeOut(){
     if(millis() - lastRead > 5000){
         return true;
     }
-    retrun false;
+    return false;
 }

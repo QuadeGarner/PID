@@ -23,3 +23,15 @@ double Packet::getKD(){
 long Packet::getCompletionTime(){
     return completionTime;
 }
+void Packet:: setStartTime(){
+    this-> startTime = millis();
+}
+long Packet::getStartTime(){
+    return startTime;
+}
+void Packet::setStatus(PacketStatus status){
+    this->status = status;
+}
+void Packet::setCompletionStatus(PacketCompletionStatus status){
+    this->completionStatus = status;
+}

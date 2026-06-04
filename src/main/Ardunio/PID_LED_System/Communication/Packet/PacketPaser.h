@@ -5,7 +5,7 @@
 #include "PACKET.h"
 class PacketParser{
     private:
-        char numbersArray[] = {'0','1','2','3','4','5','6','7','8','9','.',','};
+        char numbersArray[] = {'0','1','2','3','4','5','6','7','8','9','.'};
         char field1Arr[32];
         char field2Arr[32];
         char field3Arr[32];
@@ -21,6 +21,9 @@ class PacketParser{
         bool validateCharacter(char);
         bool determineTransportCharacter(char c);
         bool isCharacterAllowed(char);
+        Packet p;
+        void checkCompletionStatus(Packet);
+        void checkValues(Packet);
 
     public:
          Packet createPacket( char c);
