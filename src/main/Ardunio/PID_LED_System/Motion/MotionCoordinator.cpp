@@ -1,50 +1,99 @@
-#include "MOTIONCOORDINATOR.h"
-double MotionCoordinator::getTarget(){
+#include "MotionCoordinator.h"
+#include <Arduino.h>
+double MotionCoordinator::getTarget()
+{
     return target;
 }
-double MotionCoordinator::getPositon(){
+double MotionCoordinator::getPosition()
+{
     return vm.getPosition();
 }
-double getHome(){
+double MotionCoordinator::getHome()
+{
     return home;
 }
-double MotionCoordinator::getTime(){
+double MotionCoordinator::getTime()
+{
     return time;
 }
-static void MotionCoordinator::setHome(double home){
-    this-> home = home;
+void MotionCoordinator::setHome(double home)
+{
+    this->home = home;
 }
-void MotionCoordinator::setTime(double time){
-    this-> time = time / 1000;
+void MotionCoordinator::setTime(double time)
+{
+    this->time = time / 1000;
 }
-void MotionCoordinator::setPower(double power){
+void MotionCoordinator::setPower(double power)
+{
     this->power = power;
-    //if statement clamping power
-    if( power< 0.05 && power > -0.05) {
-        this-> power = 0
+
+    if (power < 0.05 && power > -0.05)
+    {
+        this->power = 0;
+    }
+
+    if (power > 1 || power < -1)
+    {
+        this->power = 1;
     }
 }
-double MotionCoordinator:: getPower(){
+double MotionCoordinator::getPower()
+{
     return power;
 }
-MotionCoordinator::MotionCoordinator(TelemetryManger tm, VirualMotor vm, PIDController pc):vm(vm),tm(tm)controller(pc);
-void MotionCoordinator::run(){
+MotionCoordinator::MotionCoordinator(TelemetryManager tm, VirtualMotor vm, PIDController pc) : vm(vm), tm(tm), controller(pc) {}
+void MotionCoordinator::run()
+{
     // SerialManager and PacketParser are not part of the MotionControl
     setTime((double)millis());
-    pc.update(target, vm.getPositon(), getCycleTime());
-    setPower(pc.getOutput());
+    controller.update(target, vm.getPosition(), getCycleTime());
+    setPower(controller.getOutput());
     vm.update(getPower(), getCycleTime());
     tm.sendMessage(createPacket());
     setLastTime(getTime());
 }
-void MotionCoorndator::setLastTime(double time){
-    this->lastTime = time ;
+void MotionCoordinator::setLastTime(double time)
+{
+    this->lastTime = time;
 }
-double MotionCoordinator::getCycleTime(){
+double MotionCoordinator::getCycleTime()
+{
     return time - lastTime;
 }
-void MotionController:: updatePIDController(double kp, double ki, double kd){
-    pc.setKP(kp);
-    pc.setKD(kd);
-    pc.setKI(ki);
+void MotionCoordinator::updatePIDController(double kp, double ki, double kd)
+{
+    controller.setKp(kp);
+    controller.setKd(kd);
+    controller.setKi(ki);
+}
+TelemetryPacket MotionCoordinator::createPacket()
+{
+    TelemetryPacket tp;
+    tp.setTarget(getTarget());
+    tp.setError(controller.getError());
+    tp.setKD(controller.getKd());
+    tp.setKP(controller.getKp());
+    tp.setKI(controller.getKi());
+    tp.setPosition(getPosition());
+    tp.setLastError(controller.getLastError());
+    tp.setPercentComplete(computePercentComplete(getPosition(), getTarget()));
+    tp.setOutput(controller.getOutput());
+    return tp;
+}
+double MotionCoordinator::computePercentComplete(double pos, double tar)
+{
+    double const baseOffset = 100;
+    double const safeOffset = 1;
+    double percentComplete = 0;
+    if (tar - baseOffset > 0 && tar - baseOffset < 1)
+    {
+        percentComplete = (pos - safeOffset) / (tar - safeOffset) * 100;
+    }
+    else
+    {
+        percentComplete = (pos - baseOffset) / (tar - baseOffset) * 100;
+    }
+    percentComplete = fabs(percentComplete);
+    return percentComplete;
 }
