@@ -16,6 +16,12 @@ char SerialManager::getReadCharacter(){
 char SerialManager::readByte(){
     return Serial.read();
 }
+bool SerialManager::isAvaiable(){
+    if(Serial.avaiable()){
+        return true;
+    }
+    return false;
+}
 
 bool SerialManager:: determineTimeOut(){
     // one spot only to change if timeout need to be longer or shorter

@@ -22,8 +22,8 @@ class PacketParser{
         bool determineTransportCharacter(char c);
         bool isCharacterAllowed(char);
         Packet p;
-        void checkCompletionStatus(Packet);
-        void checkValues(Packet);
+        void checkCompletionStatus(Packet&);
+        void checkValues(Packet&);
 
     public:
          Packet createPacket( char c);

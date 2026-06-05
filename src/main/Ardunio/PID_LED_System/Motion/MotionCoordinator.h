@@ -27,5 +27,6 @@ class{
         void setPower(double);
         void run();
         MotionCoordinator(TelemetryManager, VituralMotor, PIDController);
+        void updatePIDController(double, double, double);
 };
 #endif

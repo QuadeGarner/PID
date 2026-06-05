@@ -22,7 +22,10 @@ class Packet{
         long getCompletionTime();
         void setStartTime(long);
         long getStartTime();
+        PacketStatus getPacketStatus();
         void setStatus(PacketStatus);
+        PacketCompletionStatus getCompletionStatus();
         void setCompletionStatus(PacketCompletionStatus)
+        void clearData();
 };
 #endif

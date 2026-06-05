@@ -13,5 +13,6 @@ class SerialManager{
         char getData();
         char getReadCharacter();
         bool determineTimeOut();
+        bool isAvaiable();
 };
 #endif

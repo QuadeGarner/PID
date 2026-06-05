@@ -35,3 +35,18 @@ void Packet::setStatus(PacketStatus status){
 void Packet::setCompletionStatus(PacketCompletionStatus status){
     this->completionStatus = status;
 }
+PacketStatus Packet:: getPacketStatus(){
+    return status;
+}
+PacketCompletionStatus Packet:: getPacketCompletionStatus(){
+    return completionStatus;
+}
+void Packet::clearData(){
+    setKP(0);
+    setKI(0);
+    setKD(0);
+    setCompleteionStatus(PacketCompletionStatus::INVALID_NO_DATA);
+    setStatus(PacketStatus:: PACKET_USED);
+    setStartTime(0);
+    setCompletionTime(0);
+}
