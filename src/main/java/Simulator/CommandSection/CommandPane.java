@@ -2,6 +2,7 @@ package Simulator.CommandSection;
 
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -10,6 +11,7 @@ public class CommandPane extends Pane {
     Rectangle rectangle = new Rectangle( 200,100, Color.LIGHTGRAY);
     Slider kP, kD, kI;
     Label kPLabel, kILabel, kDLabel;
+    TextField textField;
     public void setCommandPane(){
         rectangle.setLayoutX(20);
         rectangle.setLayoutY(450);
@@ -44,6 +46,21 @@ public class CommandPane extends Pane {
         kI.setPrefWidth(195);
         return kI;
     }
+    public TextField createTextField(){
+        textField = new TextField();
+        textField.setLayoutX(30);
+        textField.setLayoutY(440);
+        return textField;
+    }
+    public double getTextFieldValues(){
+        double targetValue ;
+        try{
+            targetValue = Double.parseDouble(textField.getText());
+            return targetValue;
+        }catch (NumberFormatException n){
+            return 100;
+        }
+    }
     public double getKDSliderValue(){
         return kD.getValue();
     }
@@ -76,6 +93,7 @@ public class CommandPane extends Pane {
     }
     public CommandDTO toDTO(){
         CommandDTO dto = new CommandDTO();
+        dto.setTarget(getTextFieldValues());
         dto.setKP(getKPSliderValue());
         dto.setKI(getKISliderValue());
         dto.setKD(getKDSliderValue());

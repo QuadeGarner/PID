@@ -6,6 +6,7 @@ import lombok.Setter;
 @Setter
 @Getter
 public class CommandDTO {
+    private double target;
     private double kP;
     private double kI;
     private double kD;
@@ -13,6 +14,6 @@ public class CommandDTO {
 
     @Override
     public String toString() {
-        return getKP() +","+getKI()+"," + getKD()+"\n";
+        return "$"+getTarget() +"," +getKP() +","+getKI()+"," + getKD()+"\n";
     }
 }

@@ -4,6 +4,7 @@
 #include "PacketCompletionStatus.h"
 class Packet{
     private:
+        double target;
         double kP;
         double kI;
         double kD;
@@ -12,10 +13,12 @@ class Packet{
         PacketStatus status;
         PacketCompletionStatus completionStatus;
     public:
+        void setTarget(double);
         void setKP(double);
         void setKI(double);
         void setKD(double);
         void setCompletionTime(long);
+        void setTarget();
         double getKP();
         double getKI();
         double getKD();

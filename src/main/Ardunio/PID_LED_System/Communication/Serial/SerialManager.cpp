@@ -1,31 +1,40 @@
-#include "SERIALMANAGER.h"
+#include "SerialManager.h"
 
-char SerialManager::getData(){
-    if(determineTimeOut()){
+char SerialManager::getData()
+{
+    if (determineTimeOut())
+    {
         currentState = CurrentState::TIMEOUT;
     }
-    if(Serial.avaiable() && currentState !=CurrentState::TIMEOUT){
+    if (Serial.avaiable() && currentState != CurrentState::TIMEOUT)
+    {
         readCharacter = readByte();
         lastRead = millis();
         return readCharacter;
     }
 }
-char SerialManager::getReadCharacter(){
+char SerialManager::getReadCharacter()
+{
     return readCharacter;
 }
-char SerialManager::readByte(){
+char SerialManager::readByte()
+{
     return Serial.read();
 }
-bool SerialManager::isAvaiable(){
-    if(Serial.avaiable()){
+bool SerialManager::isAvaiable()
+{
+    if (Serial.avaiable())
+    {
         return true;
     }
     return false;
 }
 
-bool SerialManager:: determineTimeOut(){
+bool SerialManager::determineTimeOut()
+{
     // one spot only to change if timeout need to be longer or shorter
-    if(millis() - lastRead > 5000){
+    if (millis() - lastRead > 5000)
+    {
         return true;
     }
     return false;
