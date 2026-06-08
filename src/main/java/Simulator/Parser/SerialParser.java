@@ -24,7 +24,6 @@ public class SerialParser extends Thread {
     public SerialParser(SerialPort port) {
         this.port = port;
         bufferedReader = new BufferedReader(new InputStreamReader(port.getInputStream()));
-
     }
 
     /*

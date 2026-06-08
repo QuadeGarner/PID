@@ -14,6 +14,10 @@ public class CommandDTO {
 
     @Override
     public String toString() {
-        return "$"+getTarget() +"," +getKP() +","+getKI()+"," + getKD()+"\n";
+        String target = String.format("%.2f", getTarget());
+        String kp = String.format("%.2f", getKP());
+        String ki = String.format("%.2f", getKI());
+        String kd = String.format("%.2f", getKD());
+        return "$"+target +"," +kp +","+ki+"," + kd+"\n";
     }
 }
