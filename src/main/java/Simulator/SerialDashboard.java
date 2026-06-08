@@ -21,15 +21,15 @@ import java.nio.charset.StandardCharsets;
 
 
 public class SerialDashboard extends Application {
-    static SerialPort port = SerialPort.getCommPort("COM7");
+    static SerialPort port = SerialPort.getCommPort("COM8");
     SerialParserDTO dto ;
     DataDTO dataDTO;
     CommandDTO commandDTO = new CommandDTO();
     DataCalculations c = new DataCalculations();
     double timeX = 0;
-
-   boolean open = open(port);
-
+    boolean allowed = false;
+    boolean open = open(port);
+    long lastSend = 0;
 
 
     static SerialParser parser = new SerialParser(port);
@@ -50,10 +50,12 @@ public class SerialDashboard extends Application {
         AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long l) {
-                if(commandDTO.getKD() != commandPane.getKDSliderValue()||
+                long now = System.currentTimeMillis();
+                if (now - lastSend > 100 &&commandDTO.getKD() != commandPane.getKDSliderValue()||
                         commandDTO.getKP() != commandPane.getKPSliderValue()) {
                     commandDTO = commandPane.toDTO();
                     port.writeBytes(commandDTO.toString().getBytes(StandardCharsets.UTF_8), commandDTO.toString().length());
+                    lastSend = now;
                 }
                 dto = parser.getLastDTO();
                 c.fromDTO(dto);
@@ -76,13 +78,19 @@ public class SerialDashboard extends Application {
         launch(args);
     }
     public boolean open(SerialPort port){
-        boolean open = port.openPort();
-        setBaudRate(port);
-        return open;
 
-    }
-    public void setBaudRate(SerialPort port){
-        port.setBaudRate(115200);
+        port.setComPortParameters(
+                115200,
+                8,
+                SerialPort.ONE_STOP_BIT,
+                SerialPort.NO_PARITY);
+
+        port.setComPortTimeouts(
+                SerialPort.TIMEOUT_READ_BLOCKING,
+                1000,
+                0);
+
+        return port.openPort();
     }
     public void startParser() throws IllegalThreadStateException{
         parser.start();

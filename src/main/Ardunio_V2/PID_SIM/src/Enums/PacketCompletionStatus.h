@@ -1,0 +1,8 @@
+#ifndef PACKETCOMPELTIONSTATUS
+#define PACKETCOMPLETIONSTATUS
+enum class PacketCompletionStatus{
+    INVAILD_PACKET_TIMEOUT,
+    VALID_COMPLETION_TIME,
+    INVALID_NO_DATA
+};
+#endif

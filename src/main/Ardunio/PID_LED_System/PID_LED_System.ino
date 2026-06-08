@@ -101,6 +101,7 @@ void loop() {
     std::fill(std::begin(field3Arr), std::end(field3Arr), NULL);
   }
   currentTime = millis();
+  controller.setHome(100);
   delta_t = currentTime - lastTime;
   dd_t = delta_t / 1000.0;
   controller.setDD_T(dd_t);
