@@ -1,181 +1,334 @@
-# PID Motor Simulator & Telemetry Dashboard
+# STM32 Motor Control Platform & Telemetry Dashboard
 
-A real-time control system simulator and telemetry platform designed to model second-order physical systems, analyze PID controller behavior, and support live bidirectional firmware communication over UART.
+A telemetry-driven embedded control platform that combines real-time motor simulation, PID control, bidirectional UART communication, and live desktop visualization.
 
----
+The project consists of two integrated systems:
 
-## Why This Project Matters
+* Embedded firmware running on an STM32 Nucleo-F103RB microcontroller
+* A JavaFX desktop application for telemetry visualization, runtime tuning, and performance analysis
 
-This project explores how embedded software interacts with physical systems under realistic constraints.
-
-Instead of idealized motion, the simulator models:
-- inertia,
-- damping,
-- actuator saturation,
-- friction,
-- and transport latency.
-
-The system evolved from a standalone PID simulator into a full telemetry + firmware communication platform capable of:
-- real-time telemetry streaming,
-- runtime PID tuning,
-- bidirectional serial communication,
-- and embedded parser synchronization.
+The platform was developed to explore many of the challenges found in real embedded control systems, including closed-loop control, serial communication reliability, parser synchronization, telemetry streaming, timing management, and system stability.
 
 ---
 
-## Key Features
+# Why This Project Matters
 
-### Real-Time Control & Simulation
-- **Second-Order Physics Simulation** — Models inertia, damping, and force response using numerical integration
-- **Real-Time PID Controller** — Runtime adjustable kP, kI, and kD gains
-- **Integral Anti-Windup** — Prevents integral accumulation instability
-- **Derivative EMA Filtering** — Reduces derivative noise and oscillation
-- **Static Friction Modeling** — Simulates breakaway torque behavior
-- **Dynamic Load Scaling** — Adjustable system mass for robustness testing
+Many control-system projects stop at simulation.
 
-### Telemetry & Visualization
-- **Live Telemetry Dashboard** — Real-time JavaFX telemetry visualization
-- **Realtime Signal Graphing** — Plots:
-  - target position,
-  - motor position,
-  - controller output
-- **Performance Metrics**
-  - Rise Time
-  - Settling Time
-  - Overshoot
+This project extends beyond simulation by implementing a complete desktop-to-firmware communication pipeline capable of:
 
-### Embedded Communication Pipeline
-- **Bidirectional UART Communication**
-  - Java dashboard transmits runtime PID gain updates
-  - Embedded firmware streams telemetry packets
-- **Custom Serial Packet Protocol**
-  - Comma-delimited packet framing
-  - Newline packet termination
-  - Runtime parser synchronization
-- **Streaming UART Parser**
-  - Stateful packet parsing
-  - Malformed packet recovery
-  - Overflow protection
-  - Parser resynchronization logic
-- **Realtime Runtime Tuning**
-  - Live PID tuning from desktop dashboard to embedded firmware
+* Runtime PID tuning
+* Live telemetry streaming
+* Stateful packet parsing
+* Embedded command processing
+* Real-time performance visualization
+* Firmware and desktop synchronization
+
+The result is a complete embedded control platform that demonstrates both control-system fundamentals and embedded software architecture.
 
 ---
 
-## System Architecture
+# Key Features
 
-### Desktop Telemetry Application (Java / JavaFX)
+## Real-Time Control System
+
+* Real-time PID controller implementation
+* Runtime adjustable kP, kI, and kD gains
+* Integral anti-windup protection
+* Exponential moving average derivative filtering
+* Output saturation and clamping
+* Closed-loop motor position control
+* Runtime control parameter updates
+
+## Physical System Simulation
+
+The simulated plant models realistic physical behavior including:
+
+* Inertia
+* Damping
+* Friction
+* Actuator limitations
+* Saturation effects
+
+System behavior is updated through numerical integration to approximate real-world motion.
+
+## Telemetry & Visualization
+
+* Live telemetry streaming
+* Real-time graph rendering
+* Target position tracking
+* Motor position tracking
+* Controller output visualization
+
+Performance metrics include:
+
+* Rise Time
+* Overshoot
+* Settling Time
+
+## Embedded Communication Pipeline
+
+* Bidirectional UART communication
+* Runtime parameter updates from desktop application
+* Embedded telemetry generation
+* Custom packet protocol
+* Stateful parser implementation
+* Packet validation
+* Parser resynchronization
+* Malformed packet recovery
+
+---
+
+# System Architecture
+
+## Desktop Application (Java / JavaFX)
+
+The desktop application is responsible for:
+
+* Telemetry visualization
+* Runtime graphing
+* PID tuning
+* Serial communication
+* Performance analysis
+
+### Core Components
+
+#### SerialDashboard
+
+Main application entry point responsible for:
+
+* UI lifecycle
+* Communication initialization
+* Dashboard coordination
+
+#### GraphPane
+
+Provides:
+
+* Real-time graph rendering
+* Position tracking visualization
+* Controller output visualization
+
+#### DataCalculations
+
+Calculates:
+
+* Rise time
+* Settling time
+* Overshoot
+* Additional control metrics
+
+#### SerialParser
+
 Responsible for:
-- telemetry visualization,
-- runtime graphing,
-- command transmission,
-- performance analysis.
 
-#### Core Components
-- `SerialDashboard`
-  - Main UI + application lifecycle
-- `GraphPane`
-  - Real-time telemetry rendering
-- `DataCalculations`
-  - Rise time / overshoot / settling-time calculations
-- `SerialParser`
-  - UART telemetry parser thread
-- `CommandPane`
-  - Runtime PID command generation
+* Telemetry packet parsing
+* Data validation
+* DTO generation
 
----
+#### CommandPane
 
-### Embedded Firmware Layer (Arduino / C++)
 Responsible for:
-- physics simulation,
-- PID execution,
-- telemetry generation,
-- command packet parsing.
 
-#### Embedded Features
-- UART telemetry transmission
-- Runtime command packet parsing
-- Stateful serial parser
-- Real-time PID gain updates
-- LED-based system state visualization
+* Runtime gain adjustment
+* Command packet generation
 
 ---
 
-## UART Communication Protocol
+## Embedded Firmware (STM32)
 
-### Telemetry Packet Format
+The firmware is organized into independent subsystems with clearly defined responsibilities.
+
+### MotionCoordinator
+
+Coordinates:
+
+* Control loop execution
+* Telemetry generation
+* System updates
+
+### PIDController
+
+Responsible for:
+
+* Error calculation
+* Integral accumulation
+* Derivative filtering
+* Control output generation
+
+### VirtualMotor
+
+Models:
+
+* System dynamics
+* Position updates
+* Force response
+
+### PacketParser
+
+Responsible for:
+
+* Byte-by-byte packet parsing
+* Packet assembly
+* Validation
+* Error detection
+* Parser resynchronization
+
+### SerialManager
+
+Responsible for:
+
+* UART communication
+* Data transport
+* Serial interface abstraction
+
+### TelemetryManager
+
+Responsible for:
+
+* Telemetry packet generation
+* Runtime data transmission
+
+---
+
+# UART Communication Protocol
+
+## Command Packet Format
+
+Desktop-to-Firmware communication:
 
 ```text
-target,error,lastError,currentPosition,kP,kD,percentComplete,power\n
+$target,kP,kI,kD
 ```
 
-### Command Packet Format
+Example:
 
 ```text
-kP,kD\n
+$500,0.65,0.10,0.25
 ```
 
-### Parser Characteristics
-- Streaming byte-by-byte UART parser
-- Packet framing using newline termination
-- Field separation using comma delimiters
-- Malformed packet recovery through parser resynchronization
-- Overflow protection to prevent runaway packet accumulation
+The command parser performs:
+
+* Packet framing
+* Field validation
+* Range checking
+* Timeout detection
+* Parser recovery
 
 ---
 
-## Key Insight
+## Telemetry Packet Format
 
-The simulator demonstrates a fundamental control-system limitation:
+Firmware-to-Desktop communication:
 
-> Faster response increases instability when available damping and actuator authority are limited.
+```text
+target,error,lastError,currentPosition,kP,kI,kD,percentComplete,output
+```
 
-With fixed:
-- motor force,
-- damping,
-- and mass,
+Example:
 
-a sufficiently aggressive rise time becomes physically unattainable without overshoot or instability.
+```text
+500.0,25.4,26.8,474.6,0.65,0.10,0.25,94.9,0.72
+```
 
----
-
-## Tech Stack
-
-### Desktop
-- Java
-- JavaFX
-- jSerialComm
-
-### Embedded
-- Arduino C++
-- UART Serial Communication
-
-### Concepts
-- PID Control Systems
-- Real-Time Telemetry
-- Embedded Communication Protocols
-- Streaming Parser Design
-- Numerical Integration
-- Stateful Firmware Parsing
+Telemetry is streamed continuously during controller execution.
 
 ---
 
-## Current Status
+# Engineering Challenges Solved
 
-Fully functional:
-- realtime PID simulator,
-- telemetry dashboard,
-- bidirectional UART communication pipeline,
-- runtime embedded tuning system.
+## UART Synchronization
+
+Implemented a stateful parser capable of:
+
+* Processing streaming serial data
+* Recovering from malformed packets
+* Maintaining synchronization after communication errors
+
+## Runtime Control Tuning
+
+Designed a communication protocol that allows:
+
+* Live gain updates
+* Continuous telemetry streaming
+* Runtime controller adjustment without restarting firmware
+
+## Embedded Debugging
+
+Migrated development from Arduino Uno to STM32 to support:
+
+* ST-LINK debugging
+* Breakpoint-based analysis
+* Runtime inspection
+* Improved development workflow
+
+## Communication Reliability
+
+Investigated and resolved:
+
+* Packet corruption
+* Parser desynchronization
+* Serial buffering issues
+* Runtime synchronization problems
 
 ---
 
-## Future Work
+# Technologies Used
 
-- Add CAN/J1939 transport layer
-- Add binary packet protocol
-- Add telemetry logging / CSV export
-- Add frequency-response analysis (Bode plots)
-- Port firmware to STM32 or ESP32
-- Add watchdog + failsafe logic
-- Add multi-threaded telemetry buffering
+## Embedded
+
+* STM32 Nucleo-F103RB
+* C++
+* STM32 Arduino Framework
+* UART Communication
+* ST-LINK Debugging
+
+## Desktop
+
+* Java
+* JavaFX
+* jSerialComm
+
+## Engineering Concepts
+
+* Embedded Systems
+* Real-Time Software
+* PID Control
+* Numerical Integration
+* UART Protocol Design
+* Telemetry Systems
+* Streaming Parser Design
+* State Machines
+* Fault Detection
+* Software Architecture
+
+---
+
+# Current Status
+
+Implemented and operational:
+
+* STM32 firmware platform
+* Real-time PID controller
+* Physical system simulation
+* JavaFX telemetry dashboard
+* Bidirectional UART communication
+* Runtime PID tuning
+* Stateful packet parser
+* Live telemetry visualization
+* Embedded debugging workflow
+
+---
+
+# Future Work
+
+* CAN bus transport layer
+* Binary packet protocol
+* Telemetry logging and playback
+* CSV export support
+* Hardware-in-the-loop testing
+* Multi-axis control support
+* Watchdog and fault-management systems
+* Advanced control algorithms beyond PID
+* RTOS-based task scheduling
+* Native STM32 HAL implementation

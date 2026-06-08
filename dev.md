@@ -1,160 +1,323 @@
 # Development & Contribution Guide
 
-This document outlines the architecture, development workflow, and future embedded systems roadmap for the PID Motor Simulator & Telemetry Dashboard.
+This document outlines the architecture, development workflow, design decisions, and future roadmap for the STM32 Motor Control Platform & Telemetry Dashboard.
 
 ---
 
-# Environment Setup
+# Development Environment
 
 ## Desktop Application
-- Java 17+
-- JavaFX
-- jSerialComm
+
+Requirements:
+
+* Java 17+
+* JavaFX
+* jSerialComm
+* IntelliJ IDEA (recommended)
+
+---
 
 ## Embedded Firmware
-- Arduino IDE / PlatformIO
-- UART serial transport @ 115200 baud
+
+Requirements:
+
+* STM32 Nucleo-F103RB
+* PlatformIO
+* STM32 Arduino Framework
+* ST-LINK Debugger
+
+Communication:
+
+* UART @ 115200 baud
 
 ---
 
-# Architecture Overview
+# System Architecture
 
-The project is divided into two major subsystems:
+The project is organized into two major subsystems:
 
-## 1. Desktop Telemetry System
+1. Desktop Telemetry Application
+2. Embedded Firmware Platform
+
+The systems communicate through a custom bidirectional UART protocol.
+
+---
+
+# Desktop Telemetry Application
 
 Responsible for:
-- telemetry visualization,
-- runtime graphing,
-- command transmission,
-- metric analysis,
-- parser lifecycle management.
 
-### Major Components
+* Telemetry visualization
+* Runtime graphing
+* Controller tuning
+* Performance analysis
+* Serial communication
 
-#### `SerialDashboard`
-- JavaFX application lifecycle
-- UI orchestration
-- serial command transmission
-- parser thread management
+## Major Components
 
-#### `SerialParser`
-Dedicated UART telemetry parser thread:
-- blocking serial reads,
-- packet validation,
-- telemetry DTO generation,
-- graceful shutdown handling.
+### SerialDashboard
 
-#### `GraphPane`
-High-frequency telemetry rendering:
-- target position,
-- actual motor position,
-- controller output.
+Application entry point responsible for:
 
-#### `DataCalculations`
+* JavaFX lifecycle management
+* Dashboard initialization
+* Communication startup
+* UI coordination
+
+### SerialParser
+
+Dedicated telemetry processing thread.
+
+Responsibilities:
+
+* Blocking serial reads
+* Telemetry packet parsing
+* Data validation
+* DTO creation
+* Graceful shutdown handling
+
+### GraphPane
+
+Responsible for:
+
+* Real-time graph rendering
+* Target visualization
+* Position visualization
+* Controller output visualization
+
+### CommandPane
+
+Responsible for:
+
+* Runtime gain tuning
+* Command packet generation
+* User interaction
+
+### DataCalculations
+
 Computes:
-- overshoot,
-- settling time,
-- rise time,
-- telemetry normalization.
+
+* Rise time
+* Settling time
+* Overshoot
+* Derived telemetry metrics
 
 ---
 
-## 2. Embedded Firmware System
+# Embedded Firmware Platform
 
 Responsible for:
-- realtime control execution,
-- physics simulation,
-- telemetry transmission,
-- runtime command parsing.
 
-### Firmware Architecture
+* Control-loop execution
+* Physics simulation
+* Telemetry generation
+* Runtime command processing
 
-#### Physics Layer
-- Second-order plant simulation
-- Numerical integration
-- Damping and friction modeling
+## Firmware Architecture
 
-#### Control Layer
-- PID control loop
-- EMA derivative filtering
-- Anti-windup logic
+### MotionCoordinator
 
-#### Communication Layer
-Implements:
-- UART telemetry streaming
-- runtime command reception
-- streaming packet parser
-- parser resynchronization logic
+High-level system coordinator.
+
+Responsibilities:
+
+* Execute control loop
+* Update simulation
+* Generate telemetry
+* Coordinate subsystem interaction
+
+### PIDController
+
+Responsibilities:
+
+* Error calculation
+* Integral accumulation
+* Derivative filtering
+* Control output generation
+
+Features:
+
+* Anti-windup protection
+* Exponential moving average derivative filtering
+
+### VirtualMotor
+
+Plant simulation layer.
+
+Models:
+
+* Position
+* Velocity
+* Inertia
+* Damping
+* Actuator response
+
+### PacketParser
+
+Streaming parser responsible for:
+
+* Byte-by-byte processing
+* Packet assembly
+* Field validation
+* Error handling
+* Parser recovery
+
+### SerialManager
+
+Communication transport layer.
+
+Responsibilities:
+
+* UART data acquisition
+* Transport abstraction
+* Timeout monitoring
+
+### TelemetryManager
+
+Responsible for:
+
+* Telemetry packet creation
+* UART telemetry transmission
 
 ---
 
-# Embedded Communication Design
+# Communication Design
 
-## Telemetry Transport
+## Command Packets
 
-Firmware continuously streams telemetry packets:
+Desktop → Firmware
+
+Format:
 
 ```text
-target,error,lastError,currentPosition,kP,kD,percentComplete,power\n
+$target,kP,kI,kD
 ```
 
-## Runtime Command Packets
-
-Desktop application transmits runtime controller gains:
+Example:
 
 ```text
-kP,kD\n
+$500,0.65,0.10,0.25
+```
+
+---
+
+## Telemetry Packets
+
+Firmware → Desktop
+
+Format:
+
+```text
+target,error,lastError,currentPosition,kP,kI,kD,percentComplete,output
+```
+
+Example:
+
+```text
+500.0,12.3,15.4,487.7,0.65,0.10,0.25,97.5,0.42
 ```
 
 ---
 
 # Parser Design Notes
 
-The embedded parser evolved through several iterations:
-- naive string accumulation,
-- blocking transport debugging,
-- parser synchronization handling,
-- malformed packet recovery,
-- bounded packet protection,
-- deterministic parser reset handling.
+The communication subsystem evolved through several iterations:
 
-Current parser behavior:
-- byte-stream processing,
-- delimiter-driven field separation,
-- newline packet framing,
-- overflow recovery,
-- parser resynchronization.
+1. Basic string accumulation
+2. Delimiter-based packet parsing
+3. Stateful parser implementation
+4. Packet validation framework
+5. Parser resynchronization logic
+6. Packet timeout detection
+7. Runtime communication debugging
+
+Current parser capabilities:
+
+* Streaming byte processing
+* Delimiter-driven field extraction
+* Packet framing
+* Invalid packet rejection
+* Packet timeout detection
+* Recovery from malformed packets
+* Parser state management
 
 ---
 
-# Current Roadmap
+# Debugging Workflow
+
+Primary debugging tools:
+
+* ST-LINK debugger
+* PlatformIO debugging
+* Breakpoints
+* Runtime telemetry inspection
+* Serial communication tracing
+
+Common debugging focus areas:
+
+* PID tuning behavior
+* Packet synchronization
+* Communication reliability
+* Telemetry validation
+* Runtime control response
+
+---
+
+# Current Project Status
 
 ## Completed
-- [x] Second-order plant simulation
-- [x] Realtime PID control
-- [x] Telemetry dashboard
-- [x] UART telemetry streaming
-- [x] Bidirectional serial communication
-- [x] Runtime PID tuning
-- [x] Streaming UART parser
-- [x] Parser recovery handling
-- [x] Graceful parser thread shutdown
+
+* [x] STM32 firmware migration
+* [x] Real-time PID controller
+* [x] Second-order plant simulation
+* [x] Runtime target updates
+* [x] Runtime kP tuning
+* [x] Runtime kI tuning
+* [x] Runtime kD tuning
+* [x] JavaFX telemetry dashboard
+* [x] Bidirectional UART communication
+* [x] Streaming packet parser
+* [x] Packet validation framework
+* [x] Parser recovery handling
+* [x] ST-LINK debugging workflow
+* [x] Telemetry visualization
+* [x] Performance metric calculations
 
 ---
 
-## In Progress
-- [ ] Replace dynamic String parser with fixed-size buffer parser
-- [ ] Add runtime kI tuning
-- [ ] Improve parser state-machine architecture
+# Future Roadmap
+
+## Near-Term Improvements
+
+* [ ] Telemetry logging
+* [ ] CSV export support
+* [ ] Additional parser stress testing
+* [ ] Communication performance benchmarking
 
 ---
 
-## Planned
-- [ ] CAN/J1939 communication layer
-- [ ] Binary telemetry protocol
-- [ ] STM32 firmware port
-- [ ] Watchdog safety system
-- [ ] Data logging subsystem
-- [ ] Unit testing for parser synchronization edge cases
-- [ ] Multi-controller simulation support
+## Long-Term Goals
+
+* [ ] Binary packet protocol
+* [ ] CAN transport layer
+* [ ] Hardware-in-the-loop testing
+* [ ] Watchdog and fault management
+* [ ] Multi-axis control support
+* [ ] RTOS-based scheduling
+* [ ] Native STM32 HAL implementation
+* [ ] Advanced control algorithms beyond PID
+
+---
+
+# Design Philosophy
+
+The project emphasizes:
+
+* Modular architecture
+* Separation of responsibilities
+* Deterministic communication behavior
+* Debuggability
+* Embedded-systems best practices
+* Real-world control-system constraints
+
+The goal is not simply to simulate a PID controller, but to build an embedded control platform that mirrors the communication, debugging, and architectural challenges encountered in professional firmware development.
