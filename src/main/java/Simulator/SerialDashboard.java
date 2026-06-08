@@ -90,12 +90,7 @@ public class SerialDashboard extends Application {
                 1000,
                 0);
 
-        boolean opened = port.openPort();
-
-        System.out.println("Opened = " + opened);
-        System.out.println("Port = " + port.getSystemPortName());
-
-        return opened;
+        return port.openPort();
     }
     public void startParser() throws IllegalThreadStateException{
         parser.start();
