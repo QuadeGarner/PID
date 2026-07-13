@@ -242,6 +242,38 @@ Current parser capabilities:
 * Parser state management
 
 ---
+# Virtual CAN Protocol
+
+## Design Principles 
+1. Every node receives every CAN frame.
+2. Each node decides whether to process or ignore a frame.
+3. Each subsystem owns its own data.
+4. Commands tell a node what to do.
+5. Status messages report the current state of a subsystem.
+6. Heartbeats report that a node is alive. 
+7. FaultReports notify the network of abnormal conditions. 
+8. Message IDs identify the message type. 
+9. DeviceIDs identify the intended recipient(s)
+## Device IDs
+
+| ID | Description |
+|----|-------------|
+| ALL_DEVICES | Broadcast to every node |
+| FRONT_LEFT_MOTOR | Front left drive motor |
+| FRONT_RIGHT_MOTOR | Front right drive motor |
+| BACK_LEFT_MOTOR | Back left drive motor |
+| BACK_RIGHT_MOTOR | Back right drive motor |
+
+## Message IDs
+
+| ID | Description |
+|----|-------------|
+| 0x100 | MotorCommand |
+| 0x101 | PIDUpdate |
+| 0x102 | EncoderStatus |
+| 0x200 | Telemetry |
+| 0x300 | Diagnostics |
+---
 
 # Debugging Workflow
 

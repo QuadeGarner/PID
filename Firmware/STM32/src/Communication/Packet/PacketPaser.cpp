@@ -1,5 +1,5 @@
 #include "PacketPaser.h"
-void PacketParser::startPacket()
+void UARTParser::startPacket()
 {
     // Set state to Field 1
     status = FieldStates::BUILDING_PACKET;
@@ -19,7 +19,7 @@ void PacketParser::startPacket()
     j = 0;
     k = 0;
 }
-Packet PacketParser::endPacket()
+Packet UARTParser::endPacket()
 {
     // assume vaild only override if not
     status = FieldStates::PACKET_COMPELTE;
@@ -45,7 +45,7 @@ Packet PacketParser::endPacket()
     checkValues(p);
     return p;
 }
-void PacketParser::processDelimiter(char c)
+void UARTParser::processDelimiter(char c)
 {
     switch (state)
     {
@@ -63,7 +63,7 @@ void PacketParser::processDelimiter(char c)
         state = FieldLoadingState::PACKET_ERROR;
     }
 }
-bool PacketParser::validateCharacter(char c)
+bool UARTParser::validateCharacter(char c)
 {
     for (char b : numbersArray)
     {
@@ -74,11 +74,11 @@ bool PacketParser::validateCharacter(char c)
     }
     return false;
 }
-void PacketParser::fillArray(char arr[], char c, int i)
+void UARTParser::fillArray(char arr[], char c, int i)
 {
     arr[i] = c;
 }
-bool PacketParser::determineTransportCharacter(char c)
+bool UARTParser::determineTransportCharacter(char c)
 {
     if (c == '$' || c == ',' || c == '\n')
     {
@@ -86,7 +86,7 @@ bool PacketParser::determineTransportCharacter(char c)
     }
     return false;
 }
-bool PacketParser::isCharacterAllowed(char c)
+bool UARTParser::isCharacterAllowed(char c)
 {
     char invalidCharacters[23] = {
         '*',
@@ -124,7 +124,7 @@ bool PacketParser::isCharacterAllowed(char c)
 
     return true;
 }
-Packet PacketParser::createPacket(char c)
+Packet UARTParser::createPacket(char c)
 {
     if (isCharacterAllowed(c))
     {
@@ -192,7 +192,7 @@ Packet PacketParser::createPacket(char c)
         return p;
     }
 }
-void PacketParser::checkCompletionStatus(Packet &p)
+void UARTParser::checkCompletionStatus(Packet &p)
 {
     if (p.getCompletionTime() - p.getStartTime() > 10000)
     {
@@ -203,7 +203,7 @@ void PacketParser::checkCompletionStatus(Packet &p)
         p.setPacketCompletionStatus(PacketCompletionStatus::VALID_COMPLETION_TIME);
     }
 }
-bool PacketParser::checkForEmptyValues()
+bool UARTParser::checkForEmptyValues()
 {
     if (field1Arr[0] == '\0' || field2Arr[0] == '\0' || field3Arr[0] == '\0')
     {
@@ -211,7 +211,7 @@ bool PacketParser::checkForEmptyValues()
     }
     return false;
 }
-void PacketParser::checkValues(Packet &p)
+void UARTParser::checkValues(Packet &p)
 {
     if (p.getKP() > 1.01 || p.getKI() > 0.26 || p.getKD() > 0.5 || p.getKP() < 0 || p.getKI() < 0 || p.getKD() < 0)
     {
