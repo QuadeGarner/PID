@@ -1,0 +1,34 @@
+#ifndef MOTOR_COMMAND
+#define MOTOR_COMMAND
+enum class MotorCommand
+{
+    MOVE,
+    HOME,
+    STOP,
+    ENABLE,
+    DISABLE
+};
+enum class DeviceID
+{
+    // Broadcast
+    ALL_DEVICES,
+    // Motors
+    FRONT_LEFT_MOTOR_CONTROLLER,
+    FRONT_RIGHT_MOTOR_CONTROLLER,
+    BACK_LEFT_MOTOR_CONTROLLER,
+    BACK_RIGHT_MOTOR_CONTROLLER,
+    // Encoders
+    FRONT_LEFT_ENCODER,
+    FRONT_RIGHT_ENCODER,
+    BACK_LEFT_ENCODER,
+    BACK_RIGHT_ENCODER,
+    // Sensors
+    IMU,
+    // Systme
+    TELEMETRY_MANAGER,
+    DIAGNOSTICS_MANAGER,
+    MOTION_COORDINATOR,
+    PID_CONTROLLER,
+
+};
+#endif

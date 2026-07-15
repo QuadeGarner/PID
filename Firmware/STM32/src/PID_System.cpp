@@ -13,7 +13,7 @@ PIDController pd;
 TelemetryManager tm;
 MotionCoordinator mc = MotionCoordinator(tm, vm, pd);
 SerialManager sm;
-PacketParser pp;
+UARTParser pp;
 Packet p;
 
 void setup()
@@ -32,6 +32,6 @@ void loop()
         mc.setTarget(p.getTarget());
         mc.updatePIDController(p.getKP(), p.getKI(), p.getKD());
         p.clearData();
-        }
+    }
     mc.run();
 }
