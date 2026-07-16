@@ -4,26 +4,26 @@
 class TelemetryPacket
 {
 private:
-        double target;
-        double error;
-        double lastError;
-        double position;
-        double kP;
-        double kI;
-        double kD;
-        double percentComplete;
-        double output;
+        float target;
+        float error;
+        float lastError;
+        float position;
+        float kP;
+        float kI;
+        float kD;
+        float percentComplete;
+        float output;
 
 public:
-        void setTarget(double);
-        void setError(double);
-        void setLastError(double);
-        void setPosition(double);
-        void setKP(double);
-        void setKI(double);
-        void setKD(double);
-        void setPercentComplete(double);
-        void setOutput(double);
+        void setTarget(float);
+        void setError(float);
+        void setLastError(float);
+        void setPosition(float);
+        void setKP(float);
+        void setKI(float);
+        void setKD(float);
+        void setPercentComplete(float);
+        void setOutput(float);
         String toString();
 };
 #endif

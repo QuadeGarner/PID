@@ -1,34 +1,34 @@
 #include "MotionCoordinator.h"
 #include <Arduino.h>
-double MotionCoordinator::getTarget()
+float MotionCoordinator::getTarget()
 {
     return target;
 }
-void MotionCoordinator::setTarget(double target)
+void MotionCoordinator::setTarget(float target)
 {
     this->target = target;
 }
-double MotionCoordinator::getPosition()
+float MotionCoordinator::getPosition()
 {
     return vm.getPosition();
 }
-double MotionCoordinator::getHome()
+float MotionCoordinator::getHome()
 {
     return home;
 }
-double MotionCoordinator::getTime()
+float MotionCoordinator::getTime()
 {
     return time;
 }
-void MotionCoordinator::setHome(double home)
+void MotionCoordinator::setHome(float home)
 {
     this->home = home;
 }
-void MotionCoordinator::setTime(double time)
+void MotionCoordinator::setTime(float time)
 {
     this->time = time / 1000;
 }
-void MotionCoordinator::setPower(double power)
+void MotionCoordinator::setPower(float power)
 {
     this->power = power;
 
@@ -46,18 +46,21 @@ void MotionCoordinator::setPower(double power)
         this->power = -1;
     }
 }
-double MotionCoordinator::getPower()
+float MotionCoordinator::getPower()
 {
     return power;
 }
-MotionCoordinator::MotionCoordinator(TelemetryManager tm, VirtualMotor vm, PIDController pc) : vm(vm), tm(tm), controller(pc) {}
+MotionCoordinator::MotionCoordinator(TelemetryManager tm, VirtualMotor vm, PIDController pc, CanBusManager &bus) : vm(vm), tm(tm), controller(pc), cn(DeviceID::MOTION_COORDINATOR, bus, *this) {}
 void MotionCoordinator::run()
 {
     // SerialManager and PacketParser are not part of the MotionControl
-    setTime((double)millis());
+    setTime((float)millis());
     controller.update(target, vm.getPosition(), getCycleTime());
     setPower(controller.getOutput());
-    vm.update(getPower(), getCycleTime());
+    // vm.update(getPower(), getCycleTime());
+    Can_Frame frame {}
+    frame.id = MOTOR_COMMAND;
+    cn.send(frame);
     TelemetryPacket tp = createPacket();
     static unsigned long lastTelemetry = 0;
 
@@ -68,15 +71,15 @@ void MotionCoordinator::run()
     }
     setLastTime(getTime());
 }
-void MotionCoordinator::setLastTime(double time)
+void MotionCoordinator::setLastTime(float time)
 {
     this->lastTime = time;
 }
-double MotionCoordinator::getCycleTime()
+float MotionCoordinator::getCycleTime()
 {
     return time - lastTime;
 }
-void MotionCoordinator::updatePIDController(double kp, double ki, double kd)
+void MotionCoordinator::updatePIDController(float kp, float ki, float kd)
 {
     controller.setKp(kp);
     controller.setKd(kd);
@@ -96,11 +99,11 @@ TelemetryPacket MotionCoordinator::createPacket()
     tp.setOutput(getPower());
     return tp;
 }
-double MotionCoordinator::computePercentComplete(double pos, double tar)
+float MotionCoordinator::computePercentComplete(float pos, float tar)
 {
-    double const baseOffset = 100;
-    double const safeOffset = 1;
-    double percentComplete = 0;
+    float const baseOffset = 100;
+    float const safeOffset = 1;
+    float percentComplete = 0;
     if (tar - baseOffset > 0 && tar - baseOffset < 1)
     {
         percentComplete = (pos - safeOffset) / (tar - safeOffset) * 100;
@@ -111,4 +114,25 @@ double MotionCoordinator::computePercentComplete(double pos, double tar)
     }
     percentComplete = fabs(percentComplete);
     return percentComplete;
+}
+void MotionCoordinator::receive(CAN_Frame &frame)
+{
+    switch (frame.id)
+    {
+    case MOTOR_STATUS:
+        Serial.print("Motor");
+        break;
+    case ENCODER_STATUS:
+        Serial.print("Encoder");
+        break;
+    case PID_STATUS:
+        Serial.print("PID");
+        break;
+    case FAULTREPORT:
+        Serial.print("FAULT");
+        break;
+
+    default:
+        break;
+    }
 }

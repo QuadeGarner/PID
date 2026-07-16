@@ -1,37 +1,40 @@
 #ifndef MOTIONCONTROLLER
 #define MOTIONCONTROLLER
 #include "../VirtualMotor/VirtualMotor.h"
-#include "../Telemetry/TelemetryPacket.h"
 #include "../Telemetry/TelemetryManager.h"
 #include "../PIDController/PIDCOntroller.h"
-class MotionCoordinator
+#include "../Communication/CAN/ICanReceiver.h"
+#include "../Communication/CAN/CanNode.h"
+class MotionCoordinator : public ICanReceiver
 {
 private:
-    double target;
-    static double home;
-    double time = 0;
-    double lastTime = 0;
+    float target;
+    static float home;
+    float time = 0;
+    float lastTime = 0;
     PIDController controller;
     VirtualMotor vm;
     TelemetryManager tm;
-    double power;
+    float power;
+    CanNode cn;
 
 public:
-    double getTarget();
-    double getHome();
-    double getPower();
-    double getTime();
-    double getPosition();
-    void setTarget(double);
-    double getCycleTime();
-    void setTime(double);
-    void setHome(double);
-    void setPower(double);
-    void setLastTime(double);
+    float getTarget();
+    float getHome();
+    float getPower();
+    float getTime();
+    float getPosition();
+    void setTarget(float);
+    float getCycleTime();
+    void setTime(float);
+    void setHome(float);
+    void setPower(float);
+    void setLastTime(float);
     void run();
-    MotionCoordinator(TelemetryManager, VirtualMotor, PIDController);
-    void updatePIDController(double, double, double);
+    MotionCoordinator(TelemetryManager, VirtualMotor, PIDController, CanBusManager &);
+    void updatePIDController(float, float, float);
     TelemetryPacket createPacket();
-    double computePercentComplete(double, double);
+    float computePercentComplete(float, float);
+    void receive(CAN_Frame &) override;
 };
 #endif

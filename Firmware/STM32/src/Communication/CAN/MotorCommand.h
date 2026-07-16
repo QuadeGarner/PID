@@ -1,5 +1,5 @@
-#ifndef MOTOR_COMMAND
-#define MOTOR_COMMAND
+#ifndef MOTOR_COMMANDS
+#define MOTOR_COMMANDS
 enum class MotorCommand
 {
     MOVE,

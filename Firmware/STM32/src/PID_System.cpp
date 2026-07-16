@@ -2,6 +2,7 @@
 #include "./Communication/Packet/PacketPaser.h"
 #include "./Communication/Serial/SerialManager.h"
 #include "./PIDController/PIDController.h"
+#include "./Communication/CAN/CanBusManager.h"
 #include <math.h>
 #include <Arduino.h>
 
@@ -11,7 +12,8 @@ int const portKD = A3;
 VirtualMotor vm = VirtualMotor(double(101), double(1.0), 0.1, double(5));
 PIDController pd;
 TelemetryManager tm;
-MotionCoordinator mc = MotionCoordinator(tm, vm, pd);
+CanBusManager bus;
+MotionCoordinator mc = MotionCoordinator(tm, vm, pd, bus);
 SerialManager sm;
 UARTParser pp;
 Packet p;

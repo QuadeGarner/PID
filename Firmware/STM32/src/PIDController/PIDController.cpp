@@ -1,18 +1,18 @@
 #include "PIDController.h"
 
-double PIDController::getKp() { return kP; }
-void PIDController::setKp(double kP) { this->kP = kP; }
-double PIDController::getKd() { return kD; }
-void PIDController::setKd(double kD) { this->kD = kD; }
-double PIDController::getKi() { return kI; }
-void PIDController::setKi(double kI) { this->kI = kI; }
-double PIDController::computeError(double target, double currentPosition)
+float PIDController::getKp() { return kP; }
+void PIDController::setKp(float kP) { this->kP = kP; }
+float PIDController::getKd() { return kD; }
+void PIDController::setKd(float kD) { this->kD = kD; }
+float PIDController::getKi() { return kI; }
+void PIDController::setKi(float kI) { this->kI = kI; }
+float PIDController::computeError(float target, float currentPosition)
 {
     this->error = target - currentPosition;
     return error;
 }
 void PIDController::saveLastError() { lastError = error; }
-double PIDController::computeRawDerivative(double dd_t)
+float PIDController::computeRawDerivative(float dd_t)
 {
     if (dd_t <= 0)
     {
@@ -21,12 +21,12 @@ double PIDController::computeRawDerivative(double dd_t)
     this->rawDerivative = (error - lastError) / dd_t;
     return rawDerivative;
 }
-double PIDController::computeDerivative()
+float PIDController::computeDerivative()
 {
     this->derivative = (.1 * rawDerivative) + (.9 * derivative);
     return derivative;
 }
-double PIDController::computeIntegral(double dd_t)
+float PIDController::computeIntegral(float dd_t)
 {
     this->integralSum += error * dd_t;
     if (integralSum > 100)
@@ -39,25 +39,25 @@ double PIDController::computeIntegral(double dd_t)
     }
     return integralSum;
 }
-double PIDController::getOutput()
+float PIDController::getOutput()
 {
     return output;
 }
-double PIDController::computeOutput()
+float PIDController::computeOutput()
 {
     this->output = (error * this->getKp()) + (integralSum * this->getKi()) + (derivative * this->getKd());
     return output;
 }
 
-double PIDController::getLastError()
+float PIDController::getLastError()
 {
     return lastError;
 }
-double PIDController::getError()
+float PIDController::getError()
 {
     return error;
 }
-void PIDController::update(double target, double currentPosition, double dd_t)
+void PIDController::update(float target, float currentPosition, float dd_t)
 {
     this->computeError(target, currentPosition);
     this->computeRawDerivative(dd_t);

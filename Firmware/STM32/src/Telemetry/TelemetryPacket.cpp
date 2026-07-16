@@ -1,37 +1,37 @@
 #include "TelemetryPacket.h"
-void TelemetryPacket::setTarget(double target)
+void TelemetryPacket::setTarget(float target)
 {
     this->target = target;
 }
-void TelemetryPacket::setError(double error)
+void TelemetryPacket::setError(float error)
 {
     this->error = error;
 }
-void TelemetryPacket::setLastError(double lastError)
+void TelemetryPacket::setLastError(float lastError)
 {
     this->lastError = lastError;
 }
-void TelemetryPacket::setPosition(double position)
+void TelemetryPacket::setPosition(float position)
 {
     this->position = position;
 }
-void TelemetryPacket::setKP(double kp)
+void TelemetryPacket::setKP(float kp)
 {
     this->kP = kp;
 }
-void TelemetryPacket::setKI(double ki)
+void TelemetryPacket::setKI(float ki)
 {
     this->kI = ki;
 }
-void TelemetryPacket::setKD(double kd)
+void TelemetryPacket::setKD(float kd)
 {
     this->kD = kd;
 }
-void TelemetryPacket::setPercentComplete(double percentComplete)
+void TelemetryPacket::setPercentComplete(float percentComplete)
 {
     this->percentComplete = percentComplete;
 }
-void TelemetryPacket::setOutput(double output)
+void TelemetryPacket::setOutput(float output)
 {
     this->output = output;
 }

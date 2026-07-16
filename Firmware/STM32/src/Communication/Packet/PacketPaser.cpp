@@ -34,10 +34,10 @@ Packet UARTParser::endPacket()
         p.setCompletionTime(millis());
         return p;
     }
-    p.setTarget(atof(targetArr));
-    p.setKP(atof(field1Arr));
-    p.setKI(atof(field2Arr));
-    p.setKD(atof(field3Arr));
+    p.setTarget((float)atof(targetArr));
+    p.setKP((float)atof(field1Arr));
+    p.setKI((float)atof(field2Arr));
+    p.setKD((float)atof(field3Arr));
     p.setCompletionTime(millis());
     // assume valid override if not
     p.setStatus(PacketStatus::VALID);

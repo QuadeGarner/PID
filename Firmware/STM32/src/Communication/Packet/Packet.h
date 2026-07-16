@@ -6,25 +6,25 @@
 class Packet
 {
 private:
-    double target;
-    double kP;
-    double kI;
-    double kD;
+    float target;
+    float kP;
+    float kI;
+    float kD;
     long completionTime;
     long startTime;
     PacketStatus status;
     PacketCompletionStatus completionStatus;
 
 public:
-    void setTarget(double);
-    double getTarget();
-    void setKP(double);
-    void setKI(double);
-    void setKD(double);
+    void setTarget(float);
+    float getTarget();
+    void setKP(float);
+    void setKI(float);
+    void setKD(float);
     void setCompletionTime(long);
-    double getKP();
-    double getKI();
-    double getKD();
+    float getKP();
+    float getKI();
+    float getKD();
     long getCompletionTime();
     void setStartTime();
     long getStartTime();
