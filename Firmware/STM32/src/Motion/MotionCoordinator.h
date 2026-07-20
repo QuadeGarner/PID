@@ -13,17 +13,18 @@ private:
     float time = 0;
     float lastTime = 0;
     PIDController controller;
-    VirtualMotor vm;
     TelemetryManager tm;
     float power;
     CanNode cn;
+    uint32_t tickCount;
+    float motorPosition = 0.0f;
+    float motorVelocity = 0.0f;
 
 public:
     float getTarget();
     float getHome();
     float getPower();
     float getTime();
-    float getPosition();
     void setTarget(float);
     float getCycleTime();
     void setTime(float);
@@ -31,10 +32,12 @@ public:
     void setPower(float);
     void setLastTime(float);
     void run();
-    MotionCoordinator(TelemetryManager, VirtualMotor, PIDController, CanBusManager &);
+    MotionCoordinator(TelemetryManager, PIDController, CanBusManager &);
     void updatePIDController(float, float, float);
     TelemetryPacket createPacket();
     float computePercentComplete(float, float);
     void receive(CAN_Frame &) override;
+    CAN_Frame createSyncFrame();
+    CAN_Frame createPIDFrame();
 };
 #endif

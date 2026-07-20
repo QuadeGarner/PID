@@ -1,5 +1,6 @@
 #include "PIDController.h"
-
+#include "../Librays/CanCodec.h"
+#include "Arduino.h"
 float PIDController::getKp() { return kP; }
 void PIDController::setKp(float kP) { this->kP = kP; }
 float PIDController::getKd() { return kD; }
@@ -65,4 +66,31 @@ void PIDController::update(float target, float currentPosition, float dd_t)
     this->saveLastError();
     this->computeDerivative();
     this->computeOutput();
+}
+void PIDController::receive(CAN_Frame &frame)
+{
+    switch (frame.id)
+    {
+    case PID_COMMAND:
+        float break;
+    case PID_UPDATE:
+        // Do Something
+        break;
+    case CONTROL_SYNC:
+    {
+        float currentMasterTime = CanCodec::decodeFloat(frame, 0);
+        // currently does nothing will become the primary source of truth later
+        uint32_t ticks = CanCodec::decodeInt32(frame, 4);
+        currentTime = currentMasterTime;
+        break;
+    }
+    default:
+        break;
+    }
+}
+float PIDController::getComputetime()
+{
+    float dd_t = currentTime - lastTime;
+    lastTime = currentTime;
+    return dd_t;
 }

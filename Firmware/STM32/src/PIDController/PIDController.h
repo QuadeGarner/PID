@@ -1,6 +1,8 @@
 #ifndef PIDCONTROLLER_H
 #define PIDCONTROLLER_H
-class PIDController
+#include "../Communication/CAN/ICanReceiver.h"
+#include <cstdint>
+class PIDController : public ICanReceiver
 {
 private:
     float kP;
@@ -12,6 +14,10 @@ private:
     float derivative;
     float output;
     float integralSum;
+    float currentTime;
+    float lastTime;
+    uint32_t tickCount;
+    float getComputetime();
 
 public:
     float getKp();
@@ -30,5 +36,6 @@ public:
     float computeRawDerivative(float);
     float getLastError();
     float getError();
+    void receive(CAN_Frame &) override;
 };
 #endif

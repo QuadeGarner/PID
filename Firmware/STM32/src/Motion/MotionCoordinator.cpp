@@ -1,5 +1,6 @@
 #include "MotionCoordinator.h"
 #include <Arduino.h>
+#include "../Librays/CanCodec.h"
 float MotionCoordinator::getTarget()
 {
     return target;
@@ -8,10 +9,7 @@ void MotionCoordinator::setTarget(float target)
 {
     this->target = target;
 }
-float MotionCoordinator::getPosition()
-{
-    return vm.getPosition();
-}
+
 float MotionCoordinator::getHome()
 {
     return home;
@@ -50,17 +48,14 @@ float MotionCoordinator::getPower()
 {
     return power;
 }
-MotionCoordinator::MotionCoordinator(TelemetryManager tm, VirtualMotor vm, PIDController pc, CanBusManager &bus) : vm(vm), tm(tm), controller(pc), cn(DeviceID::MOTION_COORDINATOR, bus, *this) {}
+MotionCoordinator::MotionCoordinator(TelemetryManager tm, PIDController pc, CanBusManager &bus) : tm(tm), controller(pc), cn(DeviceID::MOTION_COORDINATOR, bus, *this) {}
 void MotionCoordinator::run()
 {
     // SerialManager and PacketParser are not part of the MotionControl
     setTime((float)millis());
-    controller.update(target, vm.getPosition(), getCycleTime());
-    setPower(controller.getOutput());
-    // vm.update(getPower(), getCycleTime());
-    Can_Frame frame {}
-    frame.id = MOTOR_COMMAND;
-    cn.send(frame);
+    tickCount++;
+    cn.send(createSyncFrame());
+    cn.send(createPIDFrame());
     TelemetryPacket tp = createPacket();
     static unsigned long lastTelemetry = 0;
 
@@ -120,19 +115,48 @@ void MotionCoordinator::receive(CAN_Frame &frame)
     switch (frame.id)
     {
     case MOTOR_STATUS:
-        Serial.print("Motor");
+        // Create helper function to make more readabilty
+        motorPosition = CanCodec::decodeFloat(frame, 0);
+        motorVelocity = CanCodec::decodeFloat(frame, 4);
         break;
     case ENCODER_STATUS:
+        // Create helper function to make more readabilty
         Serial.print("Encoder");
         break;
     case PID_STATUS:
+        // Create helper function to make more readabilty
         Serial.print("PID");
+        power = CanCodec::decodeFloat(frame, 0);
+        CAN_Frame motorFrame{};
+        motorFrame.id = MOTOR_COMMAND;
+        motorFrame.dlc = 8;
+        CanCodec::encodeFloat(motorFrame, 0, power);
+        cn.send(motorFrame);
         break;
     case FAULTREPORT:
+        // Create helper function to make more readabilty
         Serial.print("FAULT");
         break;
 
     default:
         break;
     }
+}
+CAN_Frame MotionCoordinator::createSyncFrame()
+{
+    CAN_Frame syncFrame{};
+    syncFrame.id = CONTROL_SYNC;
+    syncFrame.dlc = 8;
+    CanCodec::encodeFloat(syncFrame, 0, time);
+    CanCodec::encodeInt32(syncFrame, 4, tickCount);
+    return syncFrame;
+}
+CAN_Frame MotionCoordinator::createPIDFrame()
+{
+    CAN_Frame pidFrame{};
+    pidFrame.id = PID_COMMAND;
+    pidFrame.dlc = 8;
+    CanCodec::encodeFloat(pidFrame, 0, target);
+    CanCodec::encodeFloat(pidFrame, 4 motorPosition);
+    return pidFrame;
 }

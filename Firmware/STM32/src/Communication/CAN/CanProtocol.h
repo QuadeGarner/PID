@@ -4,9 +4,11 @@
 #include <cstdint>
 constexpr uint32_t MOTOR_COMMAND = 0x100;
 constexpr uint32_t PID_UPDATE = 0x101;
+constexpr uint32_t PID_COMMAND = 0x102;
 constexpr uint32_t MOTOR_STATUS = 0x200;
 constexpr uint32_t ENCODER_STATUS = 0x201;
 constexpr uint32_t HEARTBEAT = 0x300;
+constexpr uint32_t CONTROL_SYNC = 0x301;
 constexpr uint32_t FAULTREPORT = 0x400;
 constexpr int MAX_CAN_DATA_LENGTH = 8;
 #endif

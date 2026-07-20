@@ -1,18 +1,19 @@
 #ifndef VIRTUAL_MOTOR_H
 #define VIRTUAL_MOTOR_H
-class VirtualMotor{
+class VirtualMotor
+{
 private:
-    double position;
-    double velocity = 0;
+    float position;
+    float velocity = 0;
     double acceleration = 0;
-    double MASS ;
+    double MASS;
     double DAMPING;
     double POWER_SCALING;
-public:
 
-    VirtualMotor(double, double, double,double);
-    void update(double, double);
-    double const getPosition();
-    double const getVelocity();
+public:
+    VirtualMotor(float, double, double, double);
+    void update(float, float);
+    float const getPosition();
+    float const getVelocity();
 };
 #endif

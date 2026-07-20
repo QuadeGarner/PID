@@ -29,6 +29,7 @@ enum class DeviceID
     DIAGNOSTICS_MANAGER,
     MOTION_COORDINATOR,
     PID_CONTROLLER,
+    MOTOR_CONTROLLER
 
 };
 #endif

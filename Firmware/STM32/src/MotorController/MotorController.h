@@ -8,8 +8,13 @@ class MotorController : public ICanReceiver
 private:
     CanNode cn;
     VirtualMotor vm;
+    float currentTime;
+    float lastTime;
+    uint32_t tickCount;
+    float getCycleTime();
 
 public:
     MotorController(VirtualMotor &, CanBusManager &);
     void receive(CAN_Frame &) override;
+    Can_Frame buildMotorStatus();
 }

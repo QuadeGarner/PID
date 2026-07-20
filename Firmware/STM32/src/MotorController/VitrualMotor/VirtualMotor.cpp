@@ -1,17 +1,19 @@
 #include "VirtualMotor.h"
 
-VirtualMotor::VirtualMotor(double position, double mass, double damping, double power_scaling):
-position(position),MASS(mass),DAMPING(damping), POWER_SCALING(power_scaling){}
+VirtualMotor::VirtualMotor(float position, double mass, double damping, double power_scaling) : position(position), MASS(mass), DAMPING(damping), POWER_SCALING(power_scaling) {}
 
-void VirtualMotor::update(double inputPower, double delta_t){
-    double force = (inputPower *POWER_SCALING) - (velocity * DAMPING);
+void VirtualMotor::update(float inputPower, float delta_t)
+{
+    double force = (inputPower * POWER_SCALING) - (velocity * DAMPING);
     acceleration = force / MASS;
     velocity += (acceleration * delta_t);
     position += velocity * delta_t;
 }
-double const VirtualMotor::getPosition(){
+float const VirtualMotor::getPosition()
+{
     return position;
 }
-double const VirtualMotor::getVelocity(){
+float const VirtualMotor::getVelocity()
+{
     return velocity;
 }
