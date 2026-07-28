@@ -72,16 +72,21 @@ void PIDController::receive(CAN_Frame &frame)
     switch (frame.id)
     {
     case PID_COMMAND:
-        float break;
+        // run the Math
+        update(CanCodec::decodeFloat(frame, 0), CanCodec::decodeFloat(frame, 4), getComputetime());
+        cn.send(createPIDStatus());
     case PID_UPDATE:
-        // Do Something
+        // Updates the KP, KI, KD values
         break;
     case CONTROL_SYNC:
     {
-        float currentMasterTime = CanCodec::decodeFloat(frame, 0);
-        // currently does nothing will become the primary source of truth later
-        uint32_t ticks = CanCodec::decodeInt32(frame, 4);
-        currentTime = currentMasterTime;
+        // currentTime = CanCodec::decodeFloat(frame, 0);
+        tick = CanCodec::decodeInt32(frame, 4);
+        if (tick > tickCount)
+        {
+            tickCount = tick;
+            currentTime = CanCodec::decodeFloat(frame, 0);
+        }
         break;
     }
     default:
@@ -93,4 +98,12 @@ float PIDController::getComputetime()
     float dd_t = currentTime - lastTime;
     lastTime = currentTime;
     return dd_t;
+}
+CAN_Frame PIDController::createPIDStatus()
+{
+    CAN_Frame pidStatus {}
+    pidStatus.id = PID_STATUS;
+    pidStatus.dlc = 4;
+    CanCodec::encodeFloat(pidStatus, 0, getOutput());
+    return pidStatus;
 }

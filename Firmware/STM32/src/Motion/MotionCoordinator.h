@@ -17,6 +17,7 @@ private:
     float power;
     CanNode cn;
     uint32_t tickCount;
+    // Non absolute values, absloute values are in the Vitural motor class
     float motorPosition = 0.0f;
     float motorVelocity = 0.0f;
 
@@ -39,5 +40,7 @@ public:
     void receive(CAN_Frame &) override;
     CAN_Frame createSyncFrame();
     CAN_Frame createPIDFrame();
+    CAN_Frame createMotorFrame();
+    void updateTickCount();
 };
 #endif

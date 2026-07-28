@@ -127,11 +127,7 @@ void MotionCoordinator::receive(CAN_Frame &frame)
         // Create helper function to make more readabilty
         Serial.print("PID");
         power = CanCodec::decodeFloat(frame, 0);
-        CAN_Frame motorFrame{};
-        motorFrame.id = MOTOR_COMMAND;
-        motorFrame.dlc = 8;
-        CanCodec::encodeFloat(motorFrame, 0, power);
-        cn.send(motorFrame);
+        cn.send(createMotorFrame());
         break;
     case FAULTREPORT:
         // Create helper function to make more readabilty
@@ -159,4 +155,16 @@ CAN_Frame MotionCoordinator::createPIDFrame()
     CanCodec::encodeFloat(pidFrame, 0, target);
     CanCodec::encodeFloat(pidFrame, 4 motorPosition);
     return pidFrame;
+}
+void MotionCoordinator::updateTickCount()
+{
+    tickCount++;
+}
+CAN_Frame MotionCoordinator::createMotorFrame()
+{
+    CAN_Frame motorFrame {}
+    motorFrame.id = CONTROL_SYNC;
+    motorFrame.dlc = 4;
+    CanCodec::encodeFloat(motorFrame, 0, power);
+    // CanCodec::encodeFloat(motorFrame, 4, velocity);
 }
