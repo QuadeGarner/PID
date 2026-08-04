@@ -41,4 +41,25 @@ namespace CanCodec
         int32_t value = decodeInt32(message, startByte);
         return static_cast<float>(value) / scale;
     }
+    void encodeInt16(CAN_Message &message, uint8_t startByte, int16_t message);
+    {
+        if (startByte + sizeof(int16_t) >= message.length)
+        {
+            std::cerr << " Invlaid startByte" << std::endl;
+            return;
+        }
+
+        message.payload[startByte] = (value >> 8) & 0xFF;
+        message.payload[startByte + 1] = (value) & 0xFF;
+    }
+    int16_t decodeInt16(CAN_Message &message, uint8_t startByte)
+    {
+        if (startByte + sizeof(int16_t) >= message.length)
+        {
+            std::cerr << "Invalid startByte " << std::endl;
+            return -1;
+        }
+        return (static_cast<int16_t>(message.payload[startByte]) << 8) |
+               (static_cast<int16_t>(message.payload[startByte + 1]));
+    }
 }

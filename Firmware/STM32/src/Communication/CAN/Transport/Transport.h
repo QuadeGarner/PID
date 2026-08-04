@@ -7,3 +7,4 @@ struct CAN_Message
     uint16_t length;
     uint8_t payload[1785];
 };
+#endif
