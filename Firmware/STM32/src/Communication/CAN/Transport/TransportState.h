@@ -7,3 +7,4 @@ enum class TransportState
     COMPLETE,
     RECEIVING_COMPLETE
 };
+#endif

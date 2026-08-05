@@ -1,11 +1,11 @@
 #ifndef MOTIONCONTROLLER
 #define MOTIONCONTROLLER
-#include "../VirtualMotor/VirtualMotor.h"
+#include "../src/MotorController/VitrualMotor/VirtualMotor.h"
 #include "../Telemetry/TelemetryManager.h"
 #include "../PIDController/PIDCOntroller.h"
-#include "../Communication/CAN/ICanReceiver.h"
+#include "../Communication/CAN/IMessageReceiver.h"
 #include "../Communication/CAN/CanNode.h"
-class MotionCoordinator : public ICanReceiver
+class MotionCoordinator : public IMessageReceiver
 {
 private:
     float target;
@@ -37,7 +37,7 @@ public:
     void updatePIDController(float, float, float);
     TelemetryPacket createPacket();
     float computePercentComplete(float, float);
-    void receive(CAN_Frame &) override;
+    void receive(const CAN_Message &) override;
     CAN_Frame createSyncFrame();
     CAN_Frame createPIDFrame();
     CAN_Frame createMotorFrame();

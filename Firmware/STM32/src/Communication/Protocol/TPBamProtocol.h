@@ -1,7 +1,7 @@
 #ifndef TPBAMPROTOCOL
 #define TPBAMPROTOCOL
 #include "../CAN/Transport/Transport.h"
-#include "../Librays/CanCodec.h"
+#include "../src/Librays/CanCodec.h"
 #include "../CAN/CanProtocol.h"
 class TPBamProtocol
 {
@@ -10,6 +10,6 @@ public:
     static int32_t getOriginalMessageId(const CAN_Message &);
     static int16_t getFrameCount(const CAN_Message &);
     static int16_t getOriginalMessageLength(const CAN_Message &);
-    static int16_t computeFrameCount(CAN_Message);
+    // static int16_t computeFrameCount(CAN_Message);
 };
 #endif

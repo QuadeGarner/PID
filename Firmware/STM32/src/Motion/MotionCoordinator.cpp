@@ -110,14 +110,14 @@ float MotionCoordinator::computePercentComplete(float pos, float tar)
     percentComplete = fabs(percentComplete);
     return percentComplete;
 }
-void MotionCoordinator::receive(CAN_Frame &frame)
+void MotionCoordinator::receive(const CAN_Message &message)
 {
-    switch (frame.id)
+    switch (message.messageID)
     {
     case MOTOR_STATUS:
         // Create helper function to make more readabilty
-        motorPosition = CanCodec::decodeFloat(frame, 0);
-        motorVelocity = CanCodec::decodeFloat(frame, 4);
+        motorPosition = CanCodec::decodeFloat(message, 0);
+        motorVelocity = CanCodec::decodeFloat(message, 4);
         break;
     case ENCODER_STATUS:
         // Create helper function to make more readabilty
@@ -126,7 +126,7 @@ void MotionCoordinator::receive(CAN_Frame &frame)
     case PID_STATUS:
         // Create helper function to make more readabilty
         Serial.print("PID");
-        power = CanCodec::decodeFloat(frame, 0);
+        power = CanCodec::decodeFloat(message, 0);
         cn.send(createMotorFrame());
         break;
     case FAULTREPORT:

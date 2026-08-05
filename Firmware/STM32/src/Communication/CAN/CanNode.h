@@ -3,20 +3,18 @@
 #include <stdint.h>
 #include "CanBusManager.h"
 #include "MotorCommand.h"
-#include "ICanReceiver.h"
-#include "./Transport/TransportProtocol.h"
+#include "../src/Communication/CAN/IFrameReceiver.h"
 
 class CanNode
 {
 private:
     DeviceID id;
     CanBusManager &cm;
-    ICanReceiver &ic;
-    TransportProtocol tp;
+    IFrameReceiver &ifc;
 
 public:
-    CanNode(DeviceID, CanBusManager &, ICanReceiver &);
-    void send(CAN_Frame &);
-    void receive(CAN_Frame &);
+    CanNode(DeviceID, CanBusManager &, IFrameReceiver &);
+    void send(const CAN_Frame &);
+    void receive(const CAN_Frame &);
 };
 #endif

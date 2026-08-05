@@ -1,27 +1,27 @@
 #include "MotorController.h"
-#include "../Librays/CanCodec.h"
-MotorController::MotorController(VirtualMotor &vm, CanBusManager &bus) : vm(vm), cn(DeviceID::MOTOR_CONTROLLER, bus, *this) {}
-void MotorController::receive(CAN_Frame &frame)
+
+MotorController::MotorController(VirtualMotor &vm, CanBusManager &bus) : vm(vm), cm(DeviceID::MOTOR_CONTROLLER, bus, *this) {}
+void MotorController::receiveMessage(const CAN_Message &message)
 {
-    switch (frame.id)
+    switch (message.messageID)
     {
     case MOTOR_COMMAND:
     {
-        // do something
-        float power = CanCodec::decodeFloat(frame, 0);
+
+        float power = CanCodec::decodeFloat(message, 0);
         vm.update(power, getCycleTime());
 
-        cn.send(buildMotorStatus());
+        cm.send(buildMotorStatus());
         break;
     }
     case CONTROL_SYNC:
     {
         // currentTime = CanCodec::decodeFloat(frame, 0);
-        tick = CanCodec::decodeInt32(frame, 4);
+        uint32_t tick = CanCodec::decodeInt32(message, 4);
         if (tick > tickCount)
         {
             tickCount = tick;
-            currentTime = CanCodec::decodeFloat(frame, 0);
+            currentTime = CanCodec::decodeFloat(message, 0);
         }
         break;
     }
@@ -38,11 +38,11 @@ float MotorController::getCycleTime()
     lastTime = currentTime;
     return cycleTime;
 }
-Can_Frame MotorController::buildMotorStatus()
+CAN_Message MotorController::buildMotorStatus()
 {
-    Can_Frame status{};
-    status.id = MOTOR_STATUS;
-    status.dlc = 8;
+    CAN_Message status{};
+    status.messageID = MOTOR_STATUS;
+    status.length = 8;
     CanCodec::encodeFloat(status, 0, vm.getPosition());
     CanCodec::encodeFloat(status, 4, vm.getVelocity());
     return status;

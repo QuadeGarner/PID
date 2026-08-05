@@ -1,8 +1,8 @@
 #include "MotorStatusProtocol.h"
-#include "../Librays/CanCodec.h"
+#include "../src/Librays/CanCodec.h"
 #include "../CAN/Transport/Transport.h"
 #include "../CAN/CanProtocol.h"
-static CAN_Message MotorStatusProtocol::create(float position, float velocity)
+CAN_Message MotorStatusProtocol::create(float position, float velocity)
 {
     CAN_Message motorStatus{};
     motorStatus.messageID = MOTOR_STATUS;
@@ -11,11 +11,11 @@ static CAN_Message MotorStatusProtocol::create(float position, float velocity)
     CanCodec::encodeFloat(motorStatus, 4, velocity);
     return motorStatus;
 }
-static float MotorStatusProtocol::getPosition(const CAN_Message &message)
+float MotorStatusProtocol::getPosition(const CAN_Message &message)
 {
     return CanCodec::decodeFloat(message, 0);
 }
-static float MotorStatusProtocol::getVelocity(const CAN_Message &message)
+float MotorStatusProtocol::getVelocity(const CAN_Message &message)
 {
     return CanCodec::decodeFloat(message, 4);
 }

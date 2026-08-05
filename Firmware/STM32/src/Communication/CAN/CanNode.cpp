@@ -1,10 +1,10 @@
 #include "CanNode.h"
-void CanNode::send(CAN_Frame &cf)
+void CanNode::send(const CAN_Frame &cf)
 {
     cm.broadcast(cf);
 }
-void CanNode::receive(CAN_Frame &cf)
+void CanNode::receive(const CAN_Frame &cf)
 {
-    ic.receive(cf);
+    ifc.receiveFrame(cf);
 }
-CanNode::CanNode(DeviceID id, CanBusManager &manager, ICanReceiver &receiver) : id(id), cm(manager), ic(receiver) {}
+CanNode::CanNode(DeviceID id, CanBusManager &manager, IFrameReceiver &receiver) : id(id), cm(manager), ifc(receiver) {}

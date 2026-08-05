@@ -1,5 +1,6 @@
 #ifndef MOTORSTATUSPROTOCOL
 #define MOTORSTATUSPROTOCOL
+#include "../src/Communication/CAN/Transport/Transport.h"
 class MotorStatusProtocol
 {
 public:

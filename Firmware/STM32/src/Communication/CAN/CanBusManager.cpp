@@ -11,7 +11,7 @@ void CanBusManager::connect(CanNode &node)
         }
     }
 }
-void CanBusManager::broadcast(CAN_Frame &frame)
+void CanBusManager::broadcast(const CAN_Frame &frame)
 {
     for (CanNode *n : bus)
     {

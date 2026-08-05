@@ -1,5 +1,5 @@
 #include "./TPBamProtocol.h"
-#include "../Librays/CanCodec.h"
+#include "../src/Librays/CanCodec.h"
 CAN_Message TPBamProtocol::create(const CAN_Message &originalMessage)
 {
     int16_t frameCount = (originalMessage.length + 6) / 7;

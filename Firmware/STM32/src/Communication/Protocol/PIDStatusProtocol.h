@@ -1,5 +1,6 @@
 #ifndef PIDSTATUSPROTOCOL
 #define PIDSTATUSPROTOCOL
+#include "../src/Communication/CAN/Transport/Transport.h"
 class PidStatusProtocol
 {
 public:

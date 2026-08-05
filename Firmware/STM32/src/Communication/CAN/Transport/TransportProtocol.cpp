@@ -1,5 +1,5 @@
 #include "TransportProtocol.h"
-#include "../Protocol/TPBamPRotocol.h"
+#include "../../Protocol/TPBamProtocol.h"
 
 bool TransportProtocol::messageReady() const
 {
@@ -70,13 +70,16 @@ bool TransportProtocol::receiveFrame(const CAN_Frame &frame)
     switch (frame.id)
     {
     case TP_BAM:
+    {
         reset();
         CAN_Message bam = buildSingleMessage(frame);
-        messageId = TPBamProtocol::getOrginalMessageId(bam);
-        messageLength = TPBamProtocol::getOrginalMessageLength(bam);
+        messageId = TPBamProtocol::getOriginalMessageId(bam);
+        messageLength = TPBamProtocol::getOriginalMessageLength(bam);
         numberOfFrames = TPBamProtocol::getFrameCount(bam);
         break;
+    }
     case TP_DATA:
+    {
         storeFragments(frame);
         if (transportState == TransportState::RECEIVING_COMPLETE)
         {
@@ -85,6 +88,7 @@ bool TransportProtocol::receiveFrame(const CAN_Frame &frame)
             transferActive = false;
         }
         break;
+    }
     default:
         break;
     }
@@ -112,7 +116,7 @@ CAN_Message TransportProtocol::buildMessageFromFragment()
     }
     return message;
 }
-void TransportProtocol::storeFragments(CAN_Frame &frame)
+void TransportProtocol::storeFragments(const CAN_Frame &frame)
 {
     uint8_t sequence = frame.data[0];
     uint8_t payloadBytes = frame.dlc - 1;

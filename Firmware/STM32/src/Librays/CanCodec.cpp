@@ -41,7 +41,7 @@ namespace CanCodec
         int32_t value = decodeInt32(message, startByte);
         return static_cast<float>(value) / scale;
     }
-    void encodeInt16(CAN_Message &message, uint8_t startByte, int16_t message);
+    void encodeInt16(CAN_Message &message, uint8_t startByte, int16_t value)
     {
         if (startByte + sizeof(int16_t) >= message.length)
         {
@@ -52,7 +52,7 @@ namespace CanCodec
         message.payload[startByte] = (value >> 8) & 0xFF;
         message.payload[startByte + 1] = (value) & 0xFF;
     }
-    int16_t decodeInt16(CAN_Message &message, uint8_t startByte)
+    int16_t decodeInt16(const CAN_Message &message, uint16_t startByte)
     {
         if (startByte + sizeof(int16_t) >= message.length)
         {

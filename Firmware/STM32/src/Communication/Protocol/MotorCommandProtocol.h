@@ -1,5 +1,6 @@
 #ifndef MOTORCOMMANDPROTOCOL
 #define MOTORCOMMANDPROTOCOL
+#include "../src/Communication/CAN/Transport/Transport.h"
 class MotorCommandProtocol
 {
 public:

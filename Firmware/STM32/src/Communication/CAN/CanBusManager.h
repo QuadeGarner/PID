@@ -9,6 +9,6 @@ private:
 
 public:
     void connect(CanNode &);
-    void broadcast(CAN_Frame &);
+    void broadcast(const CAN_Frame &);
 };
 #endif
