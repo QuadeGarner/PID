@@ -13,6 +13,7 @@ target/
 *.iws
 *.iml
 *.ipr
+*.xml
 
 ### Eclipse ###
 .apt_generated
@@ -38,3 +39,4 @@ build/
 
 ### Mac OS ###
 .DS_Store
+/Dashboard/.idea/compiler.xml
