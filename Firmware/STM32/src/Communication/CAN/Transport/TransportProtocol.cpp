@@ -9,11 +9,14 @@ CAN_Message TransportProtocol::getMessage()
 {
     return completedMessage;
 }
-std::vector<CAN_Frame> TransportProtocol::buildFrames(const CAN_Message &message)
+FrameBuffer TransportProtocol::buildFrames(const CAN_Message &message)
 {
     if (message.length <= 8)
     {
-        return {buildSingleFrame(message)};
+        FrameBuffer buffer{};
+        buffer.frames[0] = buildSingleFrame(message);
+        buffer.count = 1;
+        return buffer;
     }
     else
     {
@@ -32,12 +35,12 @@ CAN_Frame TransportProtocol::buildSingleFrame(const CAN_Message &message)
     }
     return frame;
 }
-std::vector<CAN_Frame> TransportProtocol::fragmentMessage(const CAN_Message &message)
+FrameBuffer TransportProtocol::fragmentMessage(const CAN_Message &message)
 {
     CAN_Message bam = TPBamProtocol::create(message);
     uint16_t numberOfFrames = TPBamProtocol::getFrameCount(bam);
-    std::vector<CAN_Frame> frames;
-    frames.push_back(buildSingleFrame(bam));
+    FrameBuffer frames{};
+    frames.frames[0] = buildSingleFrame(bam);
     for (uint16_t i = 0; i < numberOfFrames; i++)
     {
         CAN_Frame frame{};
@@ -61,8 +64,9 @@ std::vector<CAN_Frame> TransportProtocol::fragmentMessage(const CAN_Message &mes
             frame.data[(j % 7) + 1] = message.payload[j];
         }
 
-        frames.push_back(frame);
+        frames.frames[i + 1] = frame;
     }
+    frames.count = numberOfFrames + 1;
     return frames;
 }
 bool TransportProtocol::receiveFrame(const CAN_Frame &frame)
@@ -85,7 +89,6 @@ bool TransportProtocol::receiveFrame(const CAN_Frame &frame)
         {
             completedMessage = buildMessageFromFragment();
             transportState = TransportState::COMPLETE;
-            transferActive = false;
         }
         break;
     }
@@ -138,9 +141,8 @@ void TransportProtocol::storeFragments(const CAN_Frame &frame)
 void TransportProtocol::reset()
 {
     framesReceived = 0;
-    transferActive = true;
     transportState = TransportState::RECIEVING;
-    for (int i = 0; i < std::size(received); i++)
+    for (int i = 0; i < sizeof(received); i++)
     {
         received[i] = false;
     }

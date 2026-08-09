@@ -8,26 +8,26 @@ void MotorController::receiveMessage(const CAN_Message &message)
     case MOTOR_COMMAND:
     {
 
-        float power = CanCodec::decodeFloat(message, 0);
+        float power = MotorCommandProtocol::getPower(message);
         vm.update(power, getCycleTime());
 
-        cm.send(buildMotorStatus());
+        cm.send(MotorStatusProtocol::create(vm.getPosition(), vm.getVelocity()));
         break;
     }
     case CONTROL_SYNC:
     {
-        // currentTime = CanCodec::decodeFloat(frame, 0);
-        uint32_t tick = CanCodec::decodeInt32(message, 4);
+
+        uint32_t tick = ControlSyncProtocol::getTickCount(message);
         if (tick > tickCount)
         {
             tickCount = tick;
-            currentTime = CanCodec::decodeFloat(message, 0);
+            currentTime = ControlSyncProtocol::getTime(message);
         }
         break;
     }
     default:
     {
-        // Ignore all other Can Frames
+        // Ignore all other Can Messages
         break;
     }
     }
@@ -37,13 +37,4 @@ float MotorController::getCycleTime()
     float cycleTime = currentTime - lastTime;
     lastTime = currentTime;
     return cycleTime;
-}
-CAN_Message MotorController::buildMotorStatus()
-{
-    CAN_Message status{};
-    status.messageID = MOTOR_STATUS;
-    status.length = 8;
-    CanCodec::encodeFloat(status, 0, vm.getPosition());
-    CanCodec::encodeFloat(status, 4, vm.getVelocity());
-    return status;
 }

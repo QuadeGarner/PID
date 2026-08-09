@@ -3,8 +3,6 @@
 #include "../src/Communication/CAN/IFrameReceiver.h"
 #include "TransportProtocol.h"
 #include "../src/Communication/CAN/IMessageReceiver.h"
-
-#include <iostream>
 class CommunicationManager : public IFrameReceiver
 {
 private:

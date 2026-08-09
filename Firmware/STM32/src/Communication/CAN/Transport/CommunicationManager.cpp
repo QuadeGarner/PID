@@ -1,10 +1,10 @@
 #include "CommunicationManager.h"
 void CommunicationManager::send(const CAN_Message &message)
 {
-    std::vector<CAN_Frame> frames = tp.buildFrames(message);
-    for (const CAN_Frame &frame : frames)
+    FrameBuffer frames = tp.buildFrames(message);
+    for (uint16_t i = 0; i < frames.count; i++)
     {
-        node.send(frame);
+        node.send(frames.frames[i]);
     }
 }
 void CommunicationManager::receiveFrame(const CAN_Frame &frame)

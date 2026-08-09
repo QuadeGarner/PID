@@ -1,8 +1,13 @@
 #ifndef PIDCONTROLLER_H
 #define PIDCONTROLLER_H
-#include "../Communication/CAN/ICanReceiver.h"
+#include "../Communication/CAN/IMessageReceiver.h"
+#include "../Communication/Protocol/PIDStatusProtocol.h"
+#include "../Communication/Protocol/ControlSyncProtocol.h"
+#include "../Communication/CAN/Transport/CommunicationManager.h"
+#include "../Communication/Protocol/PIDUpdateProtocol.h"
+#include "../Communication/Protocol/PIDCommand.h"
 #include <cstdint>
-class PIDController : public ICanReceiver
+class PIDController : public IMessageReceiver
 {
 private:
     float kP;
@@ -17,6 +22,7 @@ private:
     float currentTime;
     float lastTime;
     uint32_t tickCount;
+    CommunicationManager cm;
     float getComputetime();
 
 public:
@@ -36,6 +42,7 @@ public:
     float computeRawDerivative(float);
     float getLastError();
     float getError();
-    void receive(CAN_Frame &) override;
+    void receiveMessage(const CAN_Message &) override;
+    PIDController(CanBusManager &);
 };
 #endif

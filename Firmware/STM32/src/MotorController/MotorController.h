@@ -6,6 +6,9 @@
 #include "../src/Communication/CAN/CanProtocol.h"
 #include "../src/Communication/CAN/Transport/CommunicationManager.h"
 #include "../../src/Librays/CanCodec.h"
+#include "Communication/Protocol/MotorStatusProtocol.h"
+#include "Communication/Protocol/MotorCommandProtocol.h"
+#include "Communication/Protocol/ControlSyncProtocol.h"
 class MotorController : public IMessageReceiver
 {
 private:
@@ -19,5 +22,4 @@ private:
 public:
     MotorController(VirtualMotor &, CanBusManager &);
     void receiveMessage(const CAN_Message &) override;
-    CAN_Message buildMotorStatus();
 };

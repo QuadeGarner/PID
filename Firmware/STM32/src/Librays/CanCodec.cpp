@@ -1,5 +1,4 @@
 #include "CanCodec.h"
-
 namespace CanCodec
 {
     // Store a signed 32-bit int into four bytes
@@ -7,7 +6,7 @@ namespace CanCodec
     {
         if (startByte + sizeof(int32_t) >= message.length)
         {
-            std::cerr << " Invlaid startByte" << std::endl;
+            // will need to change to return something meaningful
             return;
         }
 
@@ -21,7 +20,6 @@ namespace CanCodec
     {
         if (startByte + 3 >= message.length)
         {
-            std::cerr << "Invalid startByte " << std::endl;
             return -1;
         }
         return (static_cast<int32_t>(message.payload[startByte]) << 24) |
@@ -45,7 +43,7 @@ namespace CanCodec
     {
         if (startByte + sizeof(int16_t) >= message.length)
         {
-            std::cerr << " Invlaid startByte" << std::endl;
+
             return;
         }
 
@@ -56,7 +54,6 @@ namespace CanCodec
     {
         if (startByte + sizeof(int16_t) >= message.length)
         {
-            std::cerr << "Invalid startByte " << std::endl;
             return -1;
         }
         return (static_cast<int16_t>(message.payload[startByte]) << 8) |

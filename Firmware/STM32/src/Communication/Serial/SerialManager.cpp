@@ -5,6 +5,7 @@ char SerialManager::getData()
     if (determineTimeOut())
     {
         currentState = CurrentState::TIMEOUT;
+        return readCharacter;
     }
     if (Serial.available() && currentState != CurrentState::TIMEOUT)
     {
@@ -13,6 +14,7 @@ char SerialManager::getData()
         Serial.print(readCharacter);
         return readCharacter;
     }
+    return NULL;
 }
 char SerialManager::getReadCharacter()
 {

@@ -1,7 +1,7 @@
 #ifndef CAN_CODE_LIBRARY
 #define CAN_CODE_LIBRARY
 #include "../Communication/CAN/Transport/Transport.h"
-#include <iostream>
+#include <cstdint>
 namespace CanCodec
 {
     void encodeInt32(CAN_Message &, uint8_t, int32_t);

@@ -67,26 +67,31 @@ void PIDController::update(float target, float currentPosition, float dd_t)
     this->computeDerivative();
     this->computeOutput();
 }
-void PIDController::receive(CAN_Frame &frame)
+void PIDController::receiveMessage(const CAN_Message &message)
 {
-    switch (frame.id)
+    switch (message.messageID)
     {
     case PID_COMMAND:
         // run the Math
-        update(CanCodec::decodeFloat(frame, 0), CanCodec::decodeFloat(frame, 4), getComputetime());
-        cn.send(createPIDStatus());
-    case PID_UPDATE:
-        // Updates the KP, KI, KD values
+        update(PIDCommandProtocol::getTarget(message), PIDCommandProtocol::getPosition(message), getComputetime());
+        cm.send(PidStatusProtocol::create(output, error, lastError));
         break;
     case CONTROL_SYNC:
     {
         // currentTime = CanCodec::decodeFloat(frame, 0);
-        tick = CanCodec::decodeInt32(frame, 4);
+        uint32_t tick = ControlSyncProtocol::getTickCount(message);
         if (tick > tickCount)
         {
             tickCount = tick;
-            currentTime = CanCodec::decodeFloat(frame, 0);
+            currentTime = ControlSyncProtocol::getTime(message);
         }
+        break;
+    }
+    case PID_UPDATE:
+    {
+        setKd(PIDUpdateProtocol::getKD(message));
+        setKp(PIDUpdateProtocol::getKP(message));
+        setKi(PIDUpdateProtocol::getKI(message));
         break;
     }
     default:
@@ -99,11 +104,4 @@ float PIDController::getComputetime()
     lastTime = currentTime;
     return dd_t;
 }
-CAN_Frame PIDController::createPIDStatus()
-{
-    CAN_Frame pidStatus {}
-    pidStatus.id = PID_STATUS;
-    pidStatus.dlc = 4;
-    CanCodec::encodeFloat(pidStatus, 0, getOutput());
-    return pidStatus;
-}
+PIDController::PIDController(CanBusManager &bus) : cm(DeviceID::PID_CONTROLLER, bus, *this) {};
