@@ -1,37 +1,38 @@
 #ifndef MOTIONCONTROLLER
 #define MOTIONCONTROLLER
-#include "../VirtualMotor/VirtualMotor.h"
-#include "../Telemetry/TelemetryPacket.h"
+#include "../src/MotorController/VitrualMotor/VirtualMotor.h"
 #include "../Telemetry/TelemetryManager.h"
 #include "../PIDController/PIDCOntroller.h"
-class MotionCoordinator
+#include "../Communication/CAN/IMessageReceiver.h"
+#include "../Communication/CAN/CanNode.h"
+#include "./Communication/Protocol/protocol.h"
+#include "./Communication/Packet/Packet.h"
+#include "./Communication/Packet/PacketPaser.h"
+#include "./Communication/Serial/SerialManager.h"
+#include "./Timing/SimulationClock.h"
+#include "MotionPlanner.h"
+
+class MotionCoordinator : public IMessageReceiver
 {
 private:
-    double target;
-    static double home;
-    double time = 0;
-    double lastTime = 0;
-    PIDController controller;
-    VirtualMotor vm;
-    TelemetryManager tm;
-    double power;
+    static float home;
+    CommunicationManager cm;
+    MotionPlanner mp;
+    SimClock sc;
+    TelemetryManager telemetry;
+    UARTParser parser;
+    SerialManager serial;
+    TelemetryPacket tp{};
+    // Non absolute values, absloute values are in the Vitural motor class
+    float motorPosition = 0.0f;
+    float motorVelocity = 0.0f;
+    float output;
 
 public:
-    double getTarget();
-    double getHome();
-    double getPower();
-    double getTime();
-    double getPosition();
-    void setTarget(double);
-    double getCycleTime();
-    void setTime(double);
-    void setHome(double);
-    void setPower(double);
-    void setLastTime(double);
+    float getHome();
+    void setHome(float);
     void run();
-    MotionCoordinator(TelemetryManager, VirtualMotor, PIDController);
-    void updatePIDController(double, double, double);
-    TelemetryPacket createPacket();
-    double computePercentComplete(double, double);
+    MotionCoordinator(MotionPlanner &, SimClock &, CanBusManager &);
+    void receiveMessage(const CAN_Message &) override;
 };
 #endif

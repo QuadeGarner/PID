@@ -1,17 +1,17 @@
 #include "Packet.h"
-void Packet::setTarget(double target)
+void Packet::setTarget(float target)
 {
     this->target = target;
 }
-void Packet::setKP(double field1)
+void Packet::setKP(float field1)
 {
     this->kP = field1;
 }
-void Packet::setKI(double field2)
+void Packet::setKI(float field2)
 {
     this->kI = field2;
 }
-void Packet::setKD(double field3)
+void Packet::setKD(float field3)
 {
     this->kD = field3;
 }
@@ -19,19 +19,19 @@ void Packet::setCompletionTime(long time)
 {
     this->completionTime = time;
 }
-double Packet::getTarget()
+float Packet::getTarget()
 {
     return target;
 }
-double Packet::getKP()
+float Packet::getKP()
 {
     return kP;
 }
-double Packet::getKI()
+float Packet::getKI()
 {
     return kI;
 }
-double Packet::getKD()
+float Packet::getKD()
 {
     return kD;
 }

@@ -2,6 +2,5 @@
 
 void TelemetryManager::sendMessage(TelemetryPacket p)
 {
-     Serial.println("SEND");
-     Serial.print(p.toString());
+     Serial.print((String)p.target + "," + (String)p.error + "," + (String)p.lastError + "," + (String)p.position + "," + (String)p.kp + "," + (String)p.ki + "," + (String)p.kd + "," + "," + (String)p.percentComplete + "," + (String)p.output + "\n");
 }

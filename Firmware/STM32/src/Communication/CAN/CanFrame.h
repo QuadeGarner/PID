@@ -7,9 +7,9 @@ struct CAN_Frame
     uint8_t dlc;
     uint8_t data[8];
 };
-// 0x10 = Target
-// 0x11 = kP
-// 0x12 = ki
-// 0x13 = kd
-
 #endif
+// 0x100 = MotorCommand
+// 0x101 = PID_UPDATE
+// 0x102 = ENCODER_STATUS
+// 0x200 = Telemetry
+// 0x300 = Diagnostics

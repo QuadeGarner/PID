@@ -1,34 +1,48 @@
 #ifndef PIDCONTROLLER_H
 #define PIDCONTROLLER_H
-class PIDController
+#include "../Communication/CAN/IMessageReceiver.h"
+#include "../Communication/Protocol/PIDStatusProtocol.h"
+#include "../Communication/Protocol/ControlSyncProtocol.h"
+#include "../Communication/CAN/Transport/CommunicationManager.h"
+#include "../Communication/Protocol/PIDUpdateProtocol.h"
+#include "../Communication/Protocol/PIDCommand.h"
+#include <cstdint>
+class PIDController : public IMessageReceiver
 {
 private:
-    double kP;
-    double kD;
-    double kI;
-    double error;
-    double lastError;
-    double rawDerivative;
-    double derivative;
-    double output;
-    double integralSum;
+    float kP;
+    float kD;
+    float kI;
+    float error;
+    float lastError;
+    float rawDerivative;
+    float derivative;
+    float output;
+    float integralSum;
+    float currentTime;
+    float lastTime;
+    uint32_t tickCount;
+    CommunicationManager cm;
+    float getComputetime();
 
 public:
-    double getKp();
-    void setKp(double);
-    double getKd();
-    void setKd(double);
-    double getKi();
-    void setKi(double);
-    double computeError(double, double);
+    float getKp();
+    void setKp(float);
+    float getKd();
+    void setKd(float);
+    float getKi();
+    void setKi(float);
+    float computeError(float, float);
     void saveLastError();
-    double computeDerivative();
-    double computeIntegral(double);
-    double computeOutput();
-    double getOutput();
-    void update(double, double, double);
-    double computeRawDerivative(double);
-    double getLastError();
-    double getError();
+    float computeDerivative();
+    float computeIntegral(float);
+    float computeOutput();
+    float getOutput();
+    void update(float, float, float);
+    float computeRawDerivative(float);
+    float getLastError();
+    float getError();
+    void receiveMessage(const CAN_Message &) override;
+    PIDController(CanBusManager &);
 };
 #endif

@@ -1,114 +1,61 @@
 #include "MotionCoordinator.h"
 #include <Arduino.h>
-double MotionCoordinator::getTarget()
-{
-    return target;
-}
-void MotionCoordinator::setTarget(double target)
-{
-    this->target = target;
-}
-double MotionCoordinator::getPosition()
-{
-    return vm.getPosition();
-}
-double MotionCoordinator::getHome()
+#include "../Librays/CanCodec.h"
+
+float MotionCoordinator::getHome()
 {
     return home;
 }
-double MotionCoordinator::getTime()
-{
-    return time;
-}
-void MotionCoordinator::setHome(double home)
+void MotionCoordinator::setHome(float home)
 {
     this->home = home;
 }
-void MotionCoordinator::setTime(double time)
-{
-    this->time = time / 1000;
-}
-void MotionCoordinator::setPower(double power)
-{
-    this->power = power;
 
-    if (power < 0.05 && power > -0.05)
-    {
-        this->power = 0;
-    }
-
-    if (power > 1)
-    {
-        this->power = 1;
-    }
-    else if (power < -1)
-    {
-        this->power = -1;
-    }
-}
-double MotionCoordinator::getPower()
-{
-    return power;
-}
-MotionCoordinator::MotionCoordinator(TelemetryManager tm, VirtualMotor vm, PIDController pc) : vm(vm), tm(tm), controller(pc) {}
+MotionCoordinator::MotionCoordinator(MotionPlanner &mp, SimClock &sm, CanBusManager &bus) : mp(mp), sc(sc), cm(DeviceID::MOTION_COORDINATOR, bus, *this) {}
 void MotionCoordinator::run()
 {
-    // SerialManager and PacketParser are not part of the MotionControl
-    setTime((double)millis());
-    controller.update(target, vm.getPosition(), getCycleTime());
-    setPower(controller.getOutput());
-    vm.update(getPower(), getCycleTime());
-    TelemetryPacket tp = createPacket();
-    static unsigned long lastTelemetry = 0;
+    if (serial.isAvaiable())
+    {
+        Packet packet = parser.createPacket(serial.getData());
+        if (packet.getPacketStatus() == PacketStatus::VALID)
+        {
+            mp.setTarget(packet.getTarget());
+            cm.send(PIDUpdateProtocol::create(packet.getKP(), packet.getKI(), packet.getKD()));
+            tp.kp = packet.getKP();
+            tp.kd = packet.getKD();
+            tp.ki = packet.getKI();
+            tp.target = packet.getTarget();
+        }
+    }
+    // Send a Control Sync every loop
+    sc.update();
+    cm.send(ControlSyncProtocol::create(sc.getTime(), sc.getTickCount()));
+    //
+    cm.send(PIDCommandProtocol::create(mp.getTarget(), motorPosition));
+    tp.percentComplete = mp.computePercentComplete(motorPosition);
+    telemetry.sendMessage(tp);
+}
 
-    if (millis() - lastTelemetry > 1000)
+void MotionCoordinator::receiveMessage(const CAN_Message &message)
+{
+    switch (message.messageID)
     {
-        tm.sendMessage(createPacket());
-        lastTelemetry = millis();
+    case MOTOR_STATUS:
+        motorPosition = MotorStatusProtocol::getPosition(message);
+        tp.position = motorPosition;
+        break;
+    case ENCODER_STATUS:
+        break;
+    case PID_STATUS:
+        output = PidStatusProtocol::getOutput(message);
+        tp.error = PidStatusProtocol::getError(message);
+        tp.lastError = PidStatusProtocol::getLastError(message);
+        tp.output = output;
+        cm.send(MotorCommandProtocol::create(output));
+        break;
+    case FAULTREPORT:
+        break;
+    default:
+        break;
     }
-    setLastTime(getTime());
-}
-void MotionCoordinator::setLastTime(double time)
-{
-    this->lastTime = time;
-}
-double MotionCoordinator::getCycleTime()
-{
-    return time - lastTime;
-}
-void MotionCoordinator::updatePIDController(double kp, double ki, double kd)
-{
-    controller.setKp(kp);
-    controller.setKd(kd);
-    controller.setKi(ki);
-}
-TelemetryPacket MotionCoordinator::createPacket()
-{
-    TelemetryPacket tp;
-    tp.setTarget(getTarget());
-    tp.setError(controller.getError());
-    tp.setKD(controller.getKd());
-    tp.setKP(controller.getKp());
-    tp.setKI(controller.getKi());
-    tp.setPosition(getPosition());
-    tp.setLastError(controller.getLastError());
-    tp.setPercentComplete(computePercentComplete(getPosition(), getTarget()));
-    tp.setOutput(getPower());
-    return tp;
-}
-double MotionCoordinator::computePercentComplete(double pos, double tar)
-{
-    double const baseOffset = 100;
-    double const safeOffset = 1;
-    double percentComplete = 0;
-    if (tar - baseOffset > 0 && tar - baseOffset < 1)
-    {
-        percentComplete = (pos - safeOffset) / (tar - safeOffset) * 100;
-    }
-    else
-    {
-        percentComplete = (pos - baseOffset) / (tar - baseOffset) * 100;
-    }
-    percentComplete = fabs(percentComplete);
-    return percentComplete;
 }
