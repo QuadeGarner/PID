@@ -2,17 +2,16 @@ package Simulator.Parser;
 
 import Simulator.Caculations.DataDTO.SerialParserDTO;
 import com.fazecast.jSerialComm.SerialPort;
-import com.fazecast.jSerialComm.SerialPortIOException;
 import com.fazecast.jSerialComm.SerialPortTimeoutException;
 import javafx.application.Platform;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.io.BufferedInputStream;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Scanner;
+
 @Setter
 @Getter
 public class SerialParser extends Thread {

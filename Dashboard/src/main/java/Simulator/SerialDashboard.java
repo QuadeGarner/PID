@@ -12,7 +12,6 @@ import Simulator.Parser.SerialParser;
 import com.fazecast.jSerialComm.*;
 import javafx.animation.AnimationTimer;
 import javafx.application.Application;
-import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
@@ -21,7 +20,7 @@ import java.nio.charset.StandardCharsets;
 
 
 public class SerialDashboard extends Application {
-    static SerialPort port = SerialPort.getCommPort("COM8");
+    static SerialPort port = SerialPort.getCommPort("COM7");
     SerialParserDTO dto ;
     DataDTO dataDTO;
     CommandDTO commandDTO = new CommandDTO();
@@ -69,10 +68,10 @@ public class SerialDashboard extends Application {
                 }
             }
         };
-            primaryStage.setTitle("Motor Firmware Telemetry");
-            primaryStage.setScene(scene);
-            primaryStage.show();
-            timer.start();
+        primaryStage.setTitle("Motor Firmware Telemetry");
+        primaryStage.setScene(scene);
+        primaryStage.show();
+        timer.start();
     }
     public static void main(String[] args) {
         launch(args);
