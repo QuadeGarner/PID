@@ -25,6 +25,7 @@ public class SerialParser extends Thread {
         bufferedReader = new BufferedReader(new InputStreamReader(port.getInputStream()));
     }
 
+
     /*
     Serial.print(String(controller.getTarget()) +","); target
     Serial.print(String(controller.computeError()) +",");  error

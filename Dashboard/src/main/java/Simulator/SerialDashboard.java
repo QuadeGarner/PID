@@ -26,11 +26,7 @@ public class SerialDashboard extends Application {
     CommandDTO commandDTO = new CommandDTO();
     DataCalculations c = new DataCalculations();
     double timeX = 0;
-    boolean allowed = false;
     boolean open = open(port);
-    long lastSend = 0;
-
-
     static SerialParser parser = new SerialParser(port);
 
 
@@ -45,17 +41,21 @@ public class SerialDashboard extends Application {
         graphPane.setGraphLayout();
         dataPane.setDataPane();
         commandPane.setCommandPane();
+        commandPane.getSendButton().setOnMouseClicked(event -> {
+            commandDTO = commandPane.toDTO();
+            String command = commandDTO.toString();
+            byte[] data = command.getBytes(StandardCharsets.US_ASCII);
+            int written = port.writeBytes(data, data.length);
+            System.out.println(
+                    "sent=" + data.length +
+                            " written=" + written +
+                            " command=[" + command.replace("\n", "\\n") + "]"
+            );
+        });
         root.getChildren().addAll(graphPane, dataPane, commandPane);
         AnimationTimer timer = new AnimationTimer() {
             @Override
             public void handle(long l) {
-                long now = System.currentTimeMillis();
-                if (now - lastSend > 100 &&commandDTO.getKD() != commandPane.getKDSliderValue()||
-                        commandDTO.getKP() != commandPane.getKPSliderValue()) {
-                    commandDTO = commandPane.toDTO();
-                    port.writeBytes(commandDTO.toString().getBytes(StandardCharsets.UTF_8), commandDTO.toString().length());
-                    lastSend = now;
-                }
                 dto = parser.getLastDTO();
                 c.fromDTO(dto);
                 dataDTO = c.computeMetrics();
@@ -85,7 +85,7 @@ public class SerialDashboard extends Application {
                 SerialPort.NO_PARITY);
 
         port.setComPortTimeouts(
-                SerialPort.TIMEOUT_READ_BLOCKING,
+                SerialPort.TIMEOUT_WRITE_BLOCKING,
                 1000,
                 0);
 

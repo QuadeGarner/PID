@@ -101,17 +101,8 @@ public class CommandPane extends Pane {
     public Button createSendButton(){
         sendButton = new Button("Send");
         sendButton.setLayoutX(30);
-        sendButton.setLayoutY(530);
-        sendButton.setOnMouseClicked(e->{
-            if (allowed){
-                allowed = false;
-            }
-            allowed = true;
-        });
+        sendButton.setLayoutY(550);
         return sendButton;
-    }
-    public boolean getAllowed(){
-        return allowed;
     }
     public CommandDTO toDTO(){
         CommandDTO dto = new CommandDTO();

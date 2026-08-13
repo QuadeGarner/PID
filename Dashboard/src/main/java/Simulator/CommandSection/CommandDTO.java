@@ -3,6 +3,8 @@ package Simulator.CommandSection;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.Locale;
+
 @Setter
 @Getter
 public class CommandDTO {
