@@ -1,7 +1,7 @@
 #ifndef TRANSPORTPROTOCOL
 #define TRANSPORTPROTOCOL
 #include "Transport.h"
-#include "TransportState.h"
+#include "Communication/CAN/SAEJ1939/Enums/TransferProtocolEnums.h"
 #include "../../CAN/CanFrame.h"
 struct FrameBuffer
 {
@@ -11,13 +11,21 @@ struct FrameBuffer
 class TransportProtocol
 {
 private:
-    TransportState transportState = TransportState::IDLE;
-    uint16_t numberOfFrames;
+    // Receiving
+    TransferStates receivingState = TransferStates::IDLE;
+    uint16_t receivingNumberOfFrames;
+    uint16_t framesReceived;
+    bool receivedSequence[255];
+    uint8_t buffer[1785];
     uint32_t messageId;
     uint16_t messageLength;
-    uint16_t framesReceived;
-    bool received[255];
-    uint8_t buffer[1785];
+    // Sending
+    TransferStates sendingState = TransferStates::IDLE;
+    uint16_t sendingNumberOfFrames;
+    uint16_t currentSequence;
+    CAN_Message currentMessage;
+    // frame creation
+
     CAN_Frame buildSingleFrame(const CAN_Message &);
     FrameBuffer fragmentMessage(const CAN_Message &);
     CAN_Message buildSingleMessage(const CAN_Frame &);
@@ -31,6 +39,7 @@ public:
     bool messageReady() const;
     CAN_Message getMessage();
     FrameBuffer buildFrames(const CAN_Message &);
+    void startTransfer(const CAN_Message &);
 };
 
 #endif

@@ -2,13 +2,22 @@
 #include "../src/Librays/CanCodec.h"
 CAN_Message TPBamProtocol::create(const CAN_Message &originalMessage)
 {
-    int16_t frameCount = (originalMessage.length + 6) / 7;
+    J1939Identifier originalIdentifier = J1939Identifier(originalMessage.messageID);
+    J1939Identifier BAMIdentifier = J1939Identifier(7, false, 0xec, 0xff, originalIdentifier.getSourceAddress());
     CAN_Message message{};
-    message.messageID = TP_BAM;
+    message.messageID = BAMIdentifier.getRawIdentifier();
+    uint32_t pgn = originalIdentifier.getPGN();
+
+    uint16_t packectCount = (originalMessage.length + 6) / 7;
     message.length = 8;
-    CanCodec::encodeInt16(message, 0, originalMessage.length);
-    CanCodec::encodeInt16(message, 2, frameCount);
-    CanCodec::encodeInt32(message, 4, originalMessage.messageID);
+    message.payload[0] = 0x20;
+    message.payload[1] = originalMessage.length & 0xff;
+    message.payload[2] = (originalMessage.length >> 8) & 0xff;
+    message.payload[3] = packectCount;
+    message.payload[4] = 0xff;
+    message.payload[5] = pgn & 0xff;
+    message.payload[6] = (pgn >> 8) & 0xff;
+    message.payload[7] = (pgn >> 16) & 0xff;
     return message;
 }
 int32_t TPBamProtocol::getOriginalMessageId(const CAN_Message &message)

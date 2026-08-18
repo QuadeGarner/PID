@@ -3,6 +3,7 @@
 #include "../CAN/Transport/Transport.h"
 #include "../src/Librays/CanCodec.h"
 #include "../CAN/CanProtocol.h"
+#include "Communication/CAN/SAEJ1939/J1939Identifier.h"
 class TPBamProtocol
 {
 public:

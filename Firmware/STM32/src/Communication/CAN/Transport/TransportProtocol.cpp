@@ -141,9 +141,18 @@ void TransportProtocol::storeFragments(const CAN_Frame &frame)
 void TransportProtocol::reset()
 {
     framesReceived = 0;
-    transportState = TransportState::RECIEVING;
     for (int i = 0; i < sizeof(received); i++)
     {
         received[i] = false;
     }
+}
+void TransportProtocol::startTransfer(const CAN_Message &message)
+{
+    if (sendingState != TransferStates::IDLE)
+        return;
+    // do work
+    currentMessage = message;
+    sendingNumberOfFrames = (message.length + 6) / 7;
+    currentSequence = 1;
+    sendingState = TransferStates::BAM;
 }
