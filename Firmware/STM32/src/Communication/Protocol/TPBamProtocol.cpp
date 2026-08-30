@@ -2,10 +2,10 @@
 #include "../src/Librays/CanCodec.h"
 CAN_Message TPBamProtocol::create(const CAN_Message &originalMessage)
 {
-    J1939Identifier originalIdentifier = J1939Identifier(originalMessage.messageID);
-    J1939Identifier BAMIdentifier = J1939Identifier(7, false, 0xec, 0xff, originalIdentifier.getSourceAddress());
+    J1939Identifier originalIdentifier = J1939Identifier(originalMessage.identifier);
+    J1939Identifier BAMIdentifier = J1939Identifier(7, false, false, 0xec, 0xff, static_cast<DeviceID>(originalIdentifier.getSourceAddress()));
     CAN_Message message{};
-    message.messageID = BAMIdentifier.getRawIdentifier();
+    message.identifier = BAMIdentifier.getRawIdentifier();
     uint32_t pgn = originalIdentifier.getPGN();
 
     uint16_t packectCount = (originalMessage.length + 6) / 7;
@@ -20,15 +20,17 @@ CAN_Message TPBamProtocol::create(const CAN_Message &originalMessage)
     message.payload[7] = (pgn >> 16) & 0xff;
     return message;
 }
-int32_t TPBamProtocol::getOriginalMessageId(const CAN_Message &message)
+uint16_t TPBamProtocol::getMessageLength(const CAN_Message &message)
 {
-    return CanCodec::decodeInt32(message, 4);
+    uint16_t messageLength = (message.payload[2] << 8) | (message.payload[1]);
+    return messageLength;
 }
-int16_t TPBamProtocol::getFrameCount(const CAN_Message &message)
+uint16_t TPBamProtocol::getPacketCount(const CAN_Message &message)
 {
-    return CanCodec::decodeInt16(message, 2);
+    return message.payload[3];
 }
-int16_t TPBamProtocol::getOriginalMessageLength(const CAN_Message &message)
+uint32_t TPBamProtocol::getPGN(const CAN_Message &message)
 {
-    return CanCodec::decodeInt16(message, 0);
+    uint32_t pgn = (message.payload[7] << 16) | (message.payload[6] << 8) | message.payload[5];
+    return pgn;
 }

@@ -2,12 +2,6 @@
 #define TRANSPORTPROTOCOL
 #include "Transport.h"
 #include "Communication/CAN/SAEJ1939/Enums/TransferProtocolEnums.h"
-#include "../../CAN/CanFrame.h"
-struct FrameBuffer
-{
-    CAN_Frame frames[64];
-    uint16_t count;
-};
 class TransportProtocol
 {
 private:
@@ -19,27 +13,27 @@ private:
     uint8_t buffer[1785];
     uint32_t messageId;
     uint16_t messageLength;
+    CAN_Message completedMessage;
+    uint32_t originalPGN = 0;
+    DeviceID sourceAddress = DeviceID::NONE;
+    uint8_t priority = 0;
     // Sending
     TransferStates sendingState = TransferStates::IDLE;
     uint16_t sendingNumberOfFrames;
     uint16_t currentSequence;
     CAN_Message currentMessage;
-    // frame creation
-
-    CAN_Frame buildSingleFrame(const CAN_Message &);
-    FrameBuffer fragmentMessage(const CAN_Message &);
-    CAN_Message buildSingleMessage(const CAN_Frame &);
-    CAN_Message buildMessageFromFragment();
-    void storeFragments(const CAN_Frame &);
-    CAN_Message completedMessage;
+    // helper functions
     void reset();
+    void storeFragments(const CAN_Message &);
+    CAN_Message buildMessageFromFragments();
 
 public:
-    bool receiveFrame(const CAN_Frame &);
+    bool receiveMessage(const CAN_Message &);
     bool messageReady() const;
     CAN_Message getMessage();
-    FrameBuffer buildFrames(const CAN_Message &);
     void startTransfer(const CAN_Message &);
+    CAN_Message process();
+    J1939Identifier getIdentifier() const;
 };
 
 #endif

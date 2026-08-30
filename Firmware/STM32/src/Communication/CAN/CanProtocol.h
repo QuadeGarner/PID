@@ -18,6 +18,9 @@ constexpr uint32_t TP_DATA = 0x703;
 constexpr uint32_t TP_ACK = 0x704;
 constexpr int MAX_CAN_DATA_LENGTH = 8;
 
+// SAE J1939
+constexpr uint32_t TP_CM_PGN = 0xEC00;
+constexpr uint32_t TP_DT_PGN = 0xEB00;
 #endif
 /**
  * Ranges for Future Commands

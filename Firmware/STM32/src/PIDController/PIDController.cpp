@@ -69,31 +69,18 @@ void PIDController::update(float target, float currentPosition, float dd_t)
 }
 void PIDController::receiveMessage(const CAN_Message &message)
 {
-    switch (message.messageID)
+
+    switch (message.identifier.getPGN())
     {
-    case PID_COMMAND:
-        // run the Math
-        update(PIDCommandProtocol::getTarget(message), PIDCommandProtocol::getPosition(message), getComputetime());
-        cm.send(PidStatusProtocol::create(output, error, lastError));
-        break;
-    case CONTROL_SYNC:
+    case 65281:
     {
-        // currentTime = CanCodec::decodeFloat(frame, 0);
-        uint32_t tick = ControlSyncProtocol::getTickCount(message);
-        if (tick > tickCount)
-        {
-            tickCount = tick;
-            currentTime = ControlSyncProtocol::getTime(message);
-        }
+        float time = ControlSyncProtocol::getTime(message);
+        uint32_t tickCount = ControlSyncProtocol::getTickCount(message);
         break;
     }
-    case PID_UPDATE:
-    {
-        setKd(PIDUpdateProtocol::getKD(message));
-        setKp(PIDUpdateProtocol::getKP(message));
-        setKi(PIDUpdateProtocol::getKI(message));
+    case 61490:
         break;
-    }
+
     default:
         break;
     }
@@ -104,4 +91,4 @@ float PIDController::getComputetime()
     lastTime = currentTime;
     return dd_t;
 }
-PIDController::PIDController(CanBusManager &bus) : cm(DeviceID::PID_CONTROLLER, bus, *this) {};
+PI

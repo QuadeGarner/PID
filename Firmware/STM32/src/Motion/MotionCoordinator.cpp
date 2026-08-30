@@ -38,7 +38,7 @@ void MotionCoordinator::run()
 
 void MotionCoordinator::receiveMessage(const CAN_Message &message)
 {
-    switch (message.messageID)
+    switch (message.identifier)
     {
     case MOTOR_STATUS:
         motorPosition = MotorStatusProtocol::getPosition(message);

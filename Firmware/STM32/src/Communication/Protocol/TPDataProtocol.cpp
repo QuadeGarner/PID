@@ -1,10 +1,10 @@
 #include "TPDataProtocol.h"
 CAN_Message TPDataProtocol::create(const CAN_Message &originalMessage, uint8_t sequence)
 {
-    J1939Identifier originalIdentifier = J1939Identifier(originalMessage.messageID);
-    J1939Identifier dataIdentifier = J1939Identifier(7, false, 0xeb, 0xff, originalIdentifier.getSourceAddress());
+    J1939Identifier originalIdentifier = J1939Identifier(originalMessage.identifier);
+    J1939Identifier dataIdentifier = J1939Identifier(7, false, false, 0xeb, 0xff, static_cast<DeviceID>(originalIdentifier.getSourceAddress()));
     CAN_Message message{};
-    message.messageID = dataIdentifier.getRawIdentifier();
+    message.identifier = dataIdentifier.getRawIdentifier();
     message.length = 8;
     uint16_t start = (sequence - 1) * 7;
     for (int i = 0; i < 7; i++)

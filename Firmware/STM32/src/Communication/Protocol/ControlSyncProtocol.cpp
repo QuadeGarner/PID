@@ -2,7 +2,9 @@
 CAN_Message ControlSyncProtocol::create(float time, uint32_t tickCount)
 {
     CAN_Message controlSync{};
-    controlSync.messageID = CONTROL_SYNC;
+    J1939Identifier controlIdentifier = J1939Identifier(6, false, false, 0xFF, 0x01, DeviceID::MOTION_COORDINATOR);
+    controlSync.identifier = controlIdentifier;
+    controlSync.length = 8;
     CanCodec::encodeFloat(controlSync, 0, time);
     CanCodec::encodeInt32(controlSync, 4, tickCount);
     return controlSync;

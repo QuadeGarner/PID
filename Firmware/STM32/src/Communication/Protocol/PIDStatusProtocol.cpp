@@ -6,7 +6,7 @@
 CAN_Message PidStatusProtocol::create(float power, float error, float lastError)
 {
     CAN_Message pidStatus{};
-    pidStatus.messageID = PID_STATUS;
+    pidStatus.identifier = PID_STATUS;
     pidStatus.length = 12;
     CanCodec::encodeFloat(pidStatus, 0, power);
     CanCodec::encodeFloat(pidStatus, 4, error);

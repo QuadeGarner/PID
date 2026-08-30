@@ -8,9 +8,9 @@ class TPBamProtocol
 {
 public:
     static CAN_Message create(const CAN_Message &);
-    static int32_t getOriginalMessageId(const CAN_Message &);
-    static int16_t getFrameCount(const CAN_Message &);
-    static int16_t getOriginalMessageLength(const CAN_Message &);
+    static uint16_t getMessageLength(const CAN_Message &);
+    static uint16_t getPacketCount(const CAN_Message &);
+    static uint32_t getPGN(const CAN_Message &);
     // static int16_t computeFrameCount(CAN_Message);
 };
 #endif

@@ -1,5 +1,6 @@
 #ifndef MOTOR_COMMANDS
 #define MOTOR_COMMANDS
+#include <cstdint>
 enum class MotorCommand
 {
     MOVE,
@@ -8,8 +9,10 @@ enum class MotorCommand
     ENABLE,
     DISABLE
 };
-enum class DeviceID
+enum class DeviceID : uint8_t
 {
+    // Default
+    NONE,
     // Broadcast
     ALL_DEVICES,
     // Motors
@@ -24,7 +27,7 @@ enum class DeviceID
     BACK_RIGHT_ENCODER,
     // Sensors
     IMU,
-    // Systme
+    // System
     TELEMETRY_MANAGER,
     DIAGNOSTICS_MANAGER,
     MOTION_COORDINATOR,

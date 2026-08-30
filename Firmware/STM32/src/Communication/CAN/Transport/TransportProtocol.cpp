@@ -1,94 +1,41 @@
 #include "TransportProtocol.h"
 #include "../../Protocol/TPBamProtocol.h"
+#include "../../Protocol/TPDataProtocol.h"
 
 bool TransportProtocol::messageReady() const
 {
-    return transportState == TransportState::COMPLETE;
+    return receivingState == TransferStates::COMPLETE;
 }
 CAN_Message TransportProtocol::getMessage()
 {
+    receivingState = TransferStates::IDLE;
     return completedMessage;
 }
-FrameBuffer TransportProtocol::buildFrames(const CAN_Message &message)
+bool TransportProtocol::receiveMessage(const CAN_Message &message)
 {
-    if (message.length <= 8)
-    {
-        FrameBuffer buffer{};
-        buffer.frames[0] = buildSingleFrame(message);
-        buffer.count = 1;
-        return buffer;
-    }
-    else
-    {
-        return fragmentMessage(message);
-    }
-}
-// create a CAN_Frame
-CAN_Frame TransportProtocol::buildSingleFrame(const CAN_Message &message)
-{
-    CAN_Frame frame{};
-    frame.id = message.messageID;
-    frame.dlc = message.length;
-    for (uint8_t i = 0; i < message.length; i++)
-    {
-        frame.data[i] = message.payload[i];
-    }
-    return frame;
-}
-FrameBuffer TransportProtocol::fragmentMessage(const CAN_Message &message)
-{
-    CAN_Message bam = TPBamProtocol::create(message);
-    uint16_t numberOfFrames = TPBamProtocol::getFrameCount(bam);
-    FrameBuffer frames{};
-    frames.frames[0] = buildSingleFrame(bam);
-    for (uint16_t i = 0; i < numberOfFrames; i++)
-    {
-        CAN_Frame frame{};
-        frame.id = TP_DATA;
-        if ((i + 1) * 7 < message.length)
-        {
-            frame.dlc = 8;
-        }
-        else
-        {
-            frame.dlc = message.length % 7 + 1;
-        }
-        frame.data[0] = (uint8_t)i + 1;
-        for (uint8_t j = (i * 7); j < (i * 7) + 7; j++)
-        {
+    J1939Identifier identifier = J1939Identifier(message.identifier);
 
-            if (j >= message.length)
-            {
-                break;
-            }
-            frame.data[(j % 7) + 1] = message.payload[j];
-        }
-
-        frames.frames[i + 1] = frame;
-    }
-    frames.count = numberOfFrames + 1;
-    return frames;
-}
-bool TransportProtocol::receiveFrame(const CAN_Frame &frame)
-{
-    switch (frame.id)
+    switch (identifier.getPGN())
     {
-    case TP_BAM:
+        // needs to change to the PGN of TC / BAM
+    case TP_CM_PGN:
     {
         reset();
-        CAN_Message bam = buildSingleMessage(frame);
-        messageId = TPBamProtocol::getOriginalMessageId(bam);
-        messageLength = TPBamProtocol::getOriginalMessageLength(bam);
-        numberOfFrames = TPBamProtocol::getFrameCount(bam);
+        receivingNumberOfFrames = TPBamProtocol::getPacketCount(message);
+        receivingState = TransferStates::DATA;
+        messageLength = TPBamProtocol::getMessageLength(message);
+        originalPGN = TPBamProtocol::getPGN(message);
+        sourceAddress = static_cast<DeviceID>(identifier.getSourceAddress());
+        priority = identifier.getPriority();
         break;
     }
-    case TP_DATA:
+    // need to change to the PGN
+    case TP_DT_PGN:
     {
-        storeFragments(frame);
-        if (transportState == TransportState::RECEIVING_COMPLETE)
+        storeFragments(message);
+        if (receivingState == TransferStates::COMPLETE)
         {
-            completedMessage = buildMessageFromFragment();
-            transportState = TransportState::COMPLETE;
+            completedMessage = buildMessageFromFragments();
         }
         break;
     }
@@ -97,21 +44,81 @@ bool TransportProtocol::receiveFrame(const CAN_Frame &frame)
     }
     return messageReady();
 }
-CAN_Message TransportProtocol::buildSingleMessage(const CAN_Frame &frame)
+void TransportProtocol::reset()
 {
-    CAN_Message message{};
-    message.messageID = frame.id;
-    message.length = frame.dlc;
-    for (uint8_t i = 0; i < frame.dlc; i++)
+    framesReceived = 0;
+    for (int i = 0; i < sizeof(buffer); i++)
     {
-        message.payload[i] = frame.data[i];
+        buffer[i] = 0;
     }
-    return message;
+    for (int i = 0; i < sizeof(receivedSequence); i++)
+    {
+        receivedSequence[i] = false;
+    }
+    receivingState = TransferStates::IDLE;
+    originalPGN = 0;
+    completedMessage = CAN_Message{};
+    messageLength = 0;
 }
-CAN_Message TransportProtocol::buildMessageFromFragment()
+void TransportProtocol::startTransfer(const CAN_Message &message)
+{
+    if (sendingState != TransferStates::IDLE)
+    {
+        return;
+    }
+    currentMessage = message;
+    sendingNumberOfFrames = (message.length + 6) / 7;
+    currentSequence = 1;
+    sendingState = TransferStates::BAM;
+}
+CAN_Message TransportProtocol::process()
+{
+    switch (sendingState)
+    {
+    case TransferStates::IDLE:
+        return CAN_Message{};
+    case TransferStates::BAM:
+        sendingState = TransferStates::DATA;
+        return TPBamProtocol::create(currentMessage);
+    case TransferStates::DATA:
+    {
+
+        CAN_Message dataMessage = TPDataProtocol::create(currentMessage, currentSequence);
+        currentSequence++;
+        if (currentSequence == sendingNumberOfFrames + 1)
+        {
+            sendingState = TransferStates::IDLE;
+        }
+        return dataMessage;
+    }
+    default:
+        return CAN_Message{};
+    }
+}
+void TransportProtocol::storeFragments(const CAN_Message &message)
+{
+    uint8_t sequence = message.payload[0];
+
+    if (!receivedSequence[sequence] && sequence != 0 && sequence <= receivingNumberOfFrames)
+    {
+        uint16_t start = (sequence - 1) * 7;
+        uint16_t remaining = messageLength - start;
+        for (int j = 0; j < 7 && j < remaining; j++)
+        {
+            buffer[start + j] = message.payload[j + 1];
+        }
+        framesReceived++;
+        receivedSequence[sequence] = true;
+    }
+    if (framesReceived == receivingNumberOfFrames)
+    {
+        receivingState = TransferStates::COMPLETE;
+    }
+}
+CAN_Message TransportProtocol::buildMessageFromFragments()
 {
     CAN_Message message{};
-    message.messageID = messageId;
+    message.identifier = getIdentifier();
     message.length = messageLength;
     for (int i = 0; i < messageLength; i++)
     {
@@ -119,40 +126,17 @@ CAN_Message TransportProtocol::buildMessageFromFragment()
     }
     return message;
 }
-void TransportProtocol::storeFragments(const CAN_Frame &frame)
+J1939Identifier TransportProtocol::getIdentifier() const
 {
-    uint8_t sequence = frame.data[0];
-    uint8_t payloadBytes = frame.dlc - 1;
-    if (!received[sequence])
+    uint8_t ps = (originalPGN & 0xFF);
+    uint8_t pf = (originalPGN >> 8) & 0xFF;
+    bool dataPage = (originalPGN >> 16) & 0x01;
+    if (pf < 240)
     {
-        uint16_t start = (sequence - 1) * 7;
-        for (int j = 0; j < payloadBytes; j++)
-        {
-            buffer[start + j] = frame.data[j + 1];
-        }
-        framesReceived++;
-        received[sequence] = true;
+        return J1939Identifier(priority, false, dataPage, pf, 0, sourceAddress);
     }
-    if (framesReceived == numberOfFrames)
+    else
     {
-        transportState = TransportState::RECEIVING_COMPLETE;
+        return J1939Identifier(priority, false, dataPage, pf, ps, sourceAddress);
     }
-}
-void TransportProtocol::reset()
-{
-    framesReceived = 0;
-    for (int i = 0; i < sizeof(received); i++)
-    {
-        received[i] = false;
-    }
-}
-void TransportProtocol::startTransfer(const CAN_Message &message)
-{
-    if (sendingState != TransferStates::IDLE)
-        return;
-    // do work
-    currentMessage = message;
-    sendingNumberOfFrames = (message.length + 6) / 7;
-    currentSequence = 1;
-    sendingState = TransferStates::BAM;
 }

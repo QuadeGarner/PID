@@ -3,7 +3,7 @@
 MotorController::MotorController(VirtualMotor &vm, CanBusManager &bus) : vm(vm), cm(DeviceID::MOTOR_CONTROLLER, bus, *this) {}
 void MotorController::receiveMessage(const CAN_Message &message)
 {
-    switch (message.messageID)
+    switch (message.identifier)
     {
     case MOTOR_COMMAND:
     {

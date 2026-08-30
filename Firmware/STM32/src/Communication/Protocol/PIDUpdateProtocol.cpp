@@ -2,7 +2,7 @@
 CAN_Message PIDUpdateProtocol::create(float kP, float kI, float kD)
 {
     CAN_Message pidUpdate{};
-    pidUpdate.messageID = PID_UPDATE;
+    pidUpdate.identifier = PID_UPDATE;
     pidUpdate.length = 12;
     CanCodec::encodeFloat(pidUpdate, 0, kP);
     CanCodec::encodeFloat(pidUpdate, 4, kI);

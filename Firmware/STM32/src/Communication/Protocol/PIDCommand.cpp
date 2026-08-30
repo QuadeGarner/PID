@@ -2,7 +2,7 @@
 CAN_Message PIDCommandProtocol::create(float target, float position)
 {
     CAN_Message pidCommand{};
-    pidCommand.messageID = PID_COMMAND;
+    pidCommand.identifier = PID_COMMAND;
     pidCommand.length = 8;
     CanCodec::encodeFloat(pidCommand, 0, target);
     CanCodec::encodeFloat(pidCommand, 4, position);

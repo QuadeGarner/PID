@@ -5,7 +5,7 @@
 CAN_Message MotorStatusProtocol::create(float position, float velocity)
 {
     CAN_Message motorStatus{};
-    motorStatus.messageID = MOTOR_STATUS;
+    motorStatus.identifier = MOTOR_STATUS;
     motorStatus.length = 8;
     CanCodec::encodeFloat(motorStatus, 0, position);
     CanCodec::encodeFloat(motorStatus, 4, velocity);

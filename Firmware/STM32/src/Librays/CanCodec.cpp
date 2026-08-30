@@ -4,7 +4,7 @@ namespace CanCodec
     // Store a signed 32-bit int into four bytes
     void encodeInt32(CAN_Message &message, uint8_t startByte, int32_t value)
     {
-        if (startByte + sizeof(int32_t) >= message.length)
+        if (startByte + 3 >= message.length)
         {
             // will need to change to return something meaningful
             return;
